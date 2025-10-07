@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Globe from "react-globe.gl";
 import { useNavigate } from "react-router-dom";
 import useCountrySearch from "../hooks/useCountrySearch";
+import SearchBar from "../components/SearchBar";
 
 const globeImageUrl = process.env.PUBLIC_URL + "/earth-day.jpg";
 const bumpImageUrl = process.env.PUBLIC_URL + "/earth-topology.png";
@@ -15,6 +16,16 @@ function GlobePage() {
   const [hoverD, setHoverD] = useState();
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+
+  // This useEffect will set auto-rotate when the globe ref is available
+  useEffect(() => {
+    if (globeEl.current) {
+      globeEl.current.controls().autoRotate = true;
+      globeEl.current.controls().autoRotateSpeed = 0.3;
+      globeEl.current.controls().enableZoom = true;
+      globeEl.current.pointOfView({ lat: 0, lng: 0, altitude: 2 });
+    }
+  }, [globeEl]);
 
   // Update suggestions as user types
   const onSearchChange = (e) => {
@@ -63,63 +74,24 @@ function GlobePage() {
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-      <input
-        type="text"
-        placeholder="Search for a country..."
-        value={searchTerm}
-        onChange={onSearchChange}
-        onKeyDown={onSearchSubmit}
+      <div
         style={{
           position: "absolute",
           top: 20,
           left: "50%",
           transform: "translateX(-50%)",
           zIndex: 20,
-          padding: "8px 12px",
-          fontSize: 16,
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          width: 250,
         }}
-      />
-
-      {suggestions.length > 0 && (
-        <ul
-          style={{
-            position: "absolute",
-            top: 52,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 30,
-            backgroundColor: "white",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-            listStyleType: "none",
-            padding: 0,
-            margin: 0,
-            width: 250,
-            maxHeight: 180,
-            overflowY: "auto",
-            fontSize: 16,
-            cursor: "pointer",
-          }}
-        >
-          {suggestions.map((name, idx) => (
-            <li
-              key={idx}
-              onClick={() => onSuggestionClick(name)}
-              style={{
-                padding: "8px 12px",
-                borderBottom: "1px solid #eee",
-              }}
-              onMouseDown={(e) => e.preventDefault()} // prevents input losing focus
-            >
-              {name}
-            </li>
-          ))}
-        </ul>
-      )}
-
+      >
+        <SearchBar
+          value={searchTerm}
+          suggestions={suggestions}
+          onChange={onSearchChange}
+          onKeyDown={onSearchSubmit}
+          onSuggestionClick={onSuggestionClick}
+          placeholder="Search for a country..."
+        />
+      </div>
       <Globe
         ref={globeEl}
         globeImageUrl={globeImageUrl}
