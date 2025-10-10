@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Search, Globe, TrendingUp, MapPin, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,103 +6,144 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { countries, popularCountries, trendingCountries } from "@/data/countries";
 
-// Enhanced country data with additional information
-const countries = [
-  { code: "USA", name: "United States", flag: "🇺🇸", region: "Americas", popular: true },
-  { code: "GBR", name: "United Kingdom", flag: "🇬🇧", region: "Europe", popular: true },
-  { code: "FRA", name: "France", flag: "🇫🇷", region: "Europe", popular: true },
-  { code: "DEU", name: "Germany", flag: "🇩🇪", region: "Europe", popular: true },
-  { code: "JPN", name: "Japan", flag: "🇯🇵", region: "Asia", popular: true },
-  { code: "CHN", name: "China", flag: "🇨🇳", region: "Asia", popular: true },
-  { code: "IND", name: "India", flag: "🇮🇳", region: "Asia", popular: true },
-  { code: "BRA", name: "Brazil", flag: "🇧🇷", region: "Americas", popular: true },
-  { code: "AUS", name: "Australia", flag: "🇦🇺", region: "Oceania", popular: true },
-  { code: "CAN", name: "Canada", flag: "🇨🇦", region: "Americas", popular: true },
-  { code: "MEX", name: "Mexico", flag: "🇲🇽", region: "Americas", popular: false },
-  { code: "RUS", name: "Russia", flag: "🇷🇺", region: "Europe", popular: false },
-  { code: "ITA", name: "Italy", flag: "🇮🇹", region: "Europe", popular: true },
-  { code: "ESP", name: "Spain", flag: "🇪🇸", region: "Europe", popular: true },
-  { code: "KOR", name: "South Korea", flag: "🇰🇷", region: "Asia", popular: false },
-  { code: "NLD", name: "Netherlands", flag: "🇳🇱", region: "Europe", popular: false },
-  { code: "CHE", name: "Switzerland", flag: "🇨🇭", region: "Europe", popular: false },
-  { code: "SWE", name: "Sweden", flag: "🇸🇪", region: "Europe", popular: false },
-  { code: "NOR", name: "Norway", flag: "🇳🇴", region: "Europe", popular: false },
-  { code: "SGP", name: "Singapore", flag: "🇸🇬", region: "Asia", popular: false },
-];
-
-const popularCountries = countries.filter(c => c.popular);
-const trendingCountries = ["JPN", "KOR", "SGP", "CHE", "NOR"];
-
-const CountrySearch = () => {
+const CountrySearch = ({ onSelect, compact = false, placeholder, hideQuickActions = false }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [isAnimated, setIsAnimated] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     setIsAnimated(true);
   }, []);
 
+  // Auto-focus input when popover opens
+  useEffect(() => {
+    if (open && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [open]);
+
   const filteredCountries = useMemo(() => {
     if (!search.trim()) return [];
     return countries.filter((country) =>
       country.name.toLowerCase().includes(search.toLowerCase()) ||
+      country.code.toLowerCase().includes(search.toLowerCase()) ||
       country.region.toLowerCase().includes(search.toLowerCase())
     ).slice(0, 8); // Limit results for better UX
   }, [search]);
 
-  const shouldShowSuggestions = !search.trim() && showSuggestions;
+  const shouldShowSuggestions = !search.trim();
 
-  const handleSelect = (countryCode) => {
-    navigate(`/country/${countryCode}`);
+  const handleSelect = (countryCode, countryName) => {
+    if (onSelect) {
+      onSelect({ code: countryCode, name: countryName });
+    } else {
+      navigate(`/country/${countryCode}`);
+    }
     setOpen(false);
     setSearch("");
+    setSelectedIndex(-1);
   };
 
-  const handleQuickSelect = (countryCode) => {
-    navigate(`/country/${countryCode}`);
-  };
-
-  const handleSearchFocus = () => {
-    setOpen(true);
-    setShowSuggestions(true);
+  const handleQuickSelect = (countryCode, countryName) => {
+    if (onSelect) {
+      onSelect({ code: countryCode, name: countryName });
+    } else {
+      navigate(`/country/${countryCode}`);
+    }
+    setOpen(false);
+    setSearch("");
+    setSelectedIndex(-1);
   };
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
+    const value = e.target.value;
+    setSearch(value);
+    setSelectedIndex(-1);
+    // Keep popover open while typing
+    if (!open) {
+      setOpen(true);
+    }
+  };
+
+  const handleInputClick = () => {
     setOpen(true);
-    setShowSuggestions(false);
+    // Focus the input
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e) => {
+    if (!open) return;
+
+    // Handle keyboard navigation
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => 
+        prev < filteredCountries.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+    } else if (e.key === 'Enter' && selectedIndex >= 0 && filteredCountries[selectedIndex]) {
+      e.preventDefault();
+      const country = filteredCountries[selectedIndex];
+      handleSelect(country.code, country.name);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+      inputRef.current?.blur();
+    }
+  };
+
+  const handlePopoverOpenChange = (newOpen) => {
+    // Only allow closing if user explicitly clicks outside or presses Escape
+    // Don't close when typing
+    if (!newOpen && search.trim()) {
+      // Keep open if user is still typing
+      return;
+    }
+    setOpen(newOpen);
   };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Enhanced Search Input */}
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handlePopoverOpenChange} modal={false}>
         <PopoverTrigger asChild>
           <div className={`relative transition-all duration-500 ${isAnimated ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" />
               <Input
-                placeholder="Search countries, regions, or explore by name..."
-                className="pl-12 pr-4 py-4 text-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-2 border-muted hover:border-primary/50 focus:border-primary shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl"
+                ref={inputRef}
+                placeholder={placeholder || "Search countries, regions, or explore by name..."}
+                className={`pl-12 ${compact ? 'pr-4 py-2 text-base' : 'pr-20 py-4 text-lg'} bg-white dark:bg-black border-2 border-black dark:border-white hover:border-primary focus:border-primary transition-all duration-200 rounded-md`}
                 value={search}
                 onChange={handleSearchChange}
-                onFocus={handleSearchFocus}
+                onClick={handleInputClick}
+                onKeyDown={handleKeyDown}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck="false"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Badge variant="secondary" className="text-xs px-2 py-1 bg-primary/10 text-primary border-primary/20">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  AI
-                </Badge>
-              </div>
+              {!compact && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-secondary text-secondary-foreground border border-secondary rounded-sm">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    AI
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
         </PopoverTrigger>
         
-        <PopoverContent className="w-[600px] p-0 mt-2 border-0 shadow-2xl" align="center">
-          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-border/50">
+        <PopoverContent className={`${compact ? 'w-[400px]' : 'w-[600px]'} p-0 mt-2 border-2 border-black dark:border-white rounded-lg`} align="center">
+          <div className="bg-white dark:bg-black">
             <Command>
               <CommandList className="max-h-80">
                 {shouldShowSuggestions ? (
@@ -118,8 +159,8 @@ const CountrySearch = () => {
                           <Button
                             key={country.code}
                             variant="ghost"
-                            className="justify-start h-auto p-3 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all duration-200"
-                            onClick={() => handleQuickSelect(country.code)}
+                            className="justify-start h-auto p-3 hover:bg-muted border border-border transition-all duration-200 rounded-md"
+                            onClick={() => handleQuickSelect(country.code, country.name)}
                           >
                             <span className="text-lg mr-3">{country.flag}</span>
                             <div className="text-left">
@@ -145,8 +186,8 @@ const CountrySearch = () => {
                               key={code}
                               variant="outline"
                               size="sm"
-                              className="hover:bg-secondary/10 hover:border-secondary transition-all duration-200"
-                              onClick={() => handleQuickSelect(code)}
+                              className="hover:bg-accent/20 border border-border hover:border-accent transition-all duration-200"
+                              onClick={() => handleQuickSelect(code, country?.name)}
                             >
                               <span className="mr-2">{country?.flag}</span>
                               {country?.name}
@@ -166,12 +207,17 @@ const CountrySearch = () => {
                       </div>
                     </CommandEmpty>
                     <CommandGroup>
-                      {filteredCountries.map((country) => (
+                      {filteredCountries.map((country, index) => (
                         <CommandItem
                           key={country.code}
                           value={country.name}
-                          onSelect={() => handleSelect(country.code)}
-                          className="cursor-pointer p-4 hover:bg-primary/5 transition-colors"
+                          onSelect={() => handleSelect(country.code, country.name)}
+                          className={`cursor-pointer p-4 transition-colors border-l-4 ${
+                            index === selectedIndex 
+                              ? 'bg-primary/10 border-primary' 
+                              : 'border-transparent hover:bg-muted'
+                          }`}
+                          onMouseEnter={() => setSelectedIndex(index)}
                         >
                           <div className="flex items-center gap-3 w-full">
                             <span className="text-xl">{country.flag}</span>
@@ -195,11 +241,12 @@ const CountrySearch = () => {
       </Popover>
       
       {/* Quick Action Buttons */}
+      {!hideQuickActions && (
       <div className={`flex justify-center gap-3 mt-6 transition-all duration-700 delay-300 ${isAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <Button 
           variant="outline" 
           size="sm" 
-          className="hover:bg-primary/5 hover:border-primary/30 transition-all duration-200"
+          className="hover:bg-muted border-2 border-border hover:border-primary transition-all duration-200"
           onClick={() => navigate('/compare')}
         >
           Compare Countries
@@ -207,7 +254,7 @@ const CountrySearch = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          className="hover:bg-secondary/5 hover:border-secondary/30 transition-all duration-200"
+          className="hover:bg-muted border-2 border-border hover:border-accent transition-all duration-200"
           onClick={() => navigate('/wishlist')}
         >
           My Wishlist
@@ -215,12 +262,13 @@ const CountrySearch = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          className="hover:bg-accent/5 hover:border-accent/30 transition-all duration-200"
+          className="hover:bg-muted border-2 border-border hover:border-secondary transition-all duration-200"
           onClick={() => navigate('/currency')}
         >
           Currency Converter
         </Button>
       </div>
+      )}
     </div>
   );
 };

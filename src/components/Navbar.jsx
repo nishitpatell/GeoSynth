@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Globe, Heart, BarChart3, LogOut, User, Sparkles, TrendingUp, Bell, Search, Moon, Sun } from "lucide-react";
+import { Globe, Heart, BarChart3, LogOut, User, Sparkles, TrendingUp, Bell, Search, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,13 +12,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import CountrySearch from "@/components/CountrySearch";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark' || 
@@ -38,6 +48,31 @@ const Navbar = () => {
     }
   }, [isDarkMode]);
 
+  // Fetch wishlist count
+  useEffect(() => {
+    const fetchWishlistCount = async () => {
+      if (!user) {
+        setWishlistCount(0);
+        return;
+      }
+
+      try {
+        const { count, error } = await supabase
+          .from('wishlists')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        if (!error) {
+          setWishlistCount(count || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist count:', error);
+      }
+    };
+
+    fetchWishlistCount();
+  }, [user]);
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
@@ -55,8 +90,26 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  const handleSearchSelect = (country) => {
+    setSearchOpen(false);
+    navigate(`/country/${country.code}`);
+  };
+
+  // Keyboard shortcut for search (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <nav className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+    <>
+    <nav className="border-b-2 border-black dark:border-white bg-white dark:bg-black sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
@@ -65,11 +118,11 @@ const Navbar = () => {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse" />
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Geosynth
+              <span className="text-2xl font-bold text-black dark:text-white tracking-tight">
+                GEOSYNTH
               </span>
-              <span className="text-xs text-muted-foreground font-medium">
-                Explore • Discover • Connect
+              <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+                Travel Intelligence
               </span>
             </div>
           </Link>
@@ -77,20 +130,44 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             {user ? (
               <>
+                {/* Quick Search Button */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSearchOpen(true)}
+                  className="hidden lg:flex items-center gap-2 hover:bg-muted border border-border"
+                >
+                  <Search className="h-4 w-4" />
+                  <span className="text-sm text-muted-foreground">Search...</span>
+                  <Badge variant="outline" className="text-xs ml-1 border-primary text-primary">⌘K</Badge>
+                </Button>
+                
+                {/* Mobile Search Icon */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSearchOpen(true)}
+                  className="lg:hidden hover:bg-muted border border-border"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+                
                 {/* Navigation Links */}
                 <div className="hidden md:flex items-center gap-1">
                   <Button 
                     variant={isActive('/wishlist') ? 'default' : 'ghost'} 
                     size="sm" 
                     asChild
-                    className={`transition-all duration-200 ${isActive('/wishlist') ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg' : 'hover:bg-pink-50 dark:hover:bg-pink-950'}`}
+                    className={`transition-all duration-200 border ${isActive('/wishlist') ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'}`}
                   >
                     <Link to="/wishlist" className="flex items-center gap-2">
                       <Heart className="h-4 w-4" />
                       <span className="hidden lg:inline">Wishlist</span>
-                      <Badge variant="secondary" className="ml-1 text-xs bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300">
-                        3
-                      </Badge>
+                      {wishlistCount > 0 && (
+                        <Badge variant="secondary" className="ml-1 text-xs bg-secondary text-secondary-foreground border border-secondary">
+                          {wishlistCount}
+                        </Badge>
+                      )}
                     </Link>
                   </Button>
                   
@@ -98,7 +175,7 @@ const Navbar = () => {
                     variant={isActive('/compare') ? 'default' : 'ghost'} 
                     size="sm" 
                     asChild
-                    className={`transition-all duration-200 ${isActive('/compare') ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'hover:bg-blue-50 dark:hover:bg-blue-950'}`}
+                    className={`transition-all duration-200 border ${isActive('/compare') ? 'bg-accent text-accent-foreground border-accent' : 'border-border hover:bg-muted'}`}
                   >
                     <Link to="/compare" className="flex items-center gap-2">
                       <BarChart3 className="h-4 w-4" />
@@ -177,7 +254,9 @@ const Navbar = () => {
                         <Link to="/wishlist" className="flex items-center gap-2 w-full">
                           <Heart className="h-4 w-4" />
                           <span>Wishlist</span>
-                          <Badge variant="secondary" className="ml-auto text-xs">3</Badge>
+                          {wishlistCount > 0 && (
+                            <Badge variant="secondary" className="ml-auto text-xs">{wishlistCount}</Badge>
+                          )}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
@@ -236,6 +315,24 @@ const Navbar = () => {
       {/* Progress Bar for Page Loading */}
       <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 transition-opacity duration-300" />
     </nav>
+
+    {/* Search Dialog */}
+    <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+      <DialogContent className="max-w-3xl p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Search Countries
+          </DialogTitle>
+        </DialogHeader>
+        <div className="px-6 pb-6">
+          <CountrySearch 
+            onSelect={handleSearchSelect}
+            hideQuickActions={true}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

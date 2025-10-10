@@ -57,9 +57,10 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0.5rem",    // 8px - cards, modals
+        md: "0.375rem",  // 6px - buttons, inputs
+        sm: "0.25rem",   // 4px - badges, tags
+        none: "0px",     // sharp edges where needed
       },
       keyframes: {
         "accordion-down": {
