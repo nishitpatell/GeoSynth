@@ -4,24 +4,29 @@ import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "./theme";
 import Layout from "./components/Layout";
+import { ComparisonProvider } from "./context/ComparisonContext";
 import GlobePage from "./pages/GlobePage";
 import CountryDetailsPage from "./pages/CountryDetailsPage";
+import ComparisonPage from "./pages/ComparisonPage";
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<GlobePage />} />
-            <Route
-              path="/country/:countryName"
-              element={<CountryDetailsPage />}
-            />
-          </Routes>
-        </Layout>
-      </Router>
+      <ComparisonProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<GlobePage />} />
+              <Route
+                path="/country/:countryName"
+                element={<CountryDetailsPage />}
+              />
+              <Route path="/compare" element={<ComparisonPage />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </ComparisonProvider>
     </ThemeProvider>
   );
 }
