@@ -1,4 +1,4 @@
-# Authentication Setup Documentation
+# Authentication Setup Guide - Geosynthation
 
 ## Overview
 The authentication system is fully configured using Supabase Auth with support for:

@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { wishlistRepository } from '@/core/repositories';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { QUERY_KEYS } from '@/shared/constants';
 import { toast } from 'sonner';
 import { handleError } from '@/core/errors';

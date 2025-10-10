@@ -9,6 +9,7 @@ export const ROUTES = {
   COUNTRY_PROFILE: '/country/:code',
   WISHLIST: '/wishlist',
   COMPARE: '/compare',
+  PROFILE: '/profiles',
   NOT_FOUND: '*',
 };
 
@@ -26,6 +27,7 @@ export const generateRoute = {
 export const PROTECTED_ROUTES = [
   ROUTES.WISHLIST,
   ROUTES.COMPARE,
+  ROUTES.PROFILE,
 ];
 
 /**

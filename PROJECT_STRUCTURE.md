@@ -1,4 +1,4 @@
-# Project Structure Visualization
+# Geosynth Project Structure Visualization
 
 ## 🏗️ Complete Directory Tree
 

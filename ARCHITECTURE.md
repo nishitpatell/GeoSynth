@@ -1,10 +1,9 @@
-# Project Architecture - GeoSynth
+# Geosynth Architecture - GeoSynth
 
 ## Overview
 This project follows **Clean Architecture** principles with a **feature-based folder structure**, ensuring scalability, maintainability, and testability.
 
 ## SOLID Principles Applied
-
 ### Single Responsibility Principle (SRP)
 - Each module has one reason to change
 - Services handle specific business logic

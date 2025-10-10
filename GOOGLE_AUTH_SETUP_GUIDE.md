@@ -1,4 +1,4 @@
-# Google OAuth Setup Guide for GeoSynth
+# Google OAuth Setup Guide for Geosynth
 
 ## 🎯 Overview
 This guide will walk you through setting up Google Sign-In/SSO for your GeoSynth application using Supabase authentication.

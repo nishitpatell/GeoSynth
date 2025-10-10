@@ -4,7 +4,7 @@
 
 export * from './routes';
 
-export const APP_NAME = 'GeoSynth';
+export const APP_NAME = 'Geosynth';
 
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',

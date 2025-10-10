@@ -1,19 +1,24 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import WorldMap from "@/components/WorldMap";
+import { Globe3D } from "@/features/globe";
 import CountrySearch from "@/components/CountrySearch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Map, Heart, BarChart3, Sparkles, TrendingUp, Users, Newspaper, ArrowRight, Star } from "lucide-react";
+import { Globe, Heart, BarChart3, Sparkles, TrendingUp, Users, Newspaper, ArrowRight, Star, MapPin, Languages, Map as MapIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { enhancedCountryService } from "@/services/enhancedCountryService";
 
 const Index = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [countryDetails, setCountryDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [stats, setStats] = useState({ countries: 195, users: 1250, searches: 15420 });
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsVisible(true);
@@ -28,9 +33,28 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (selectedCountry && user) {
+      fetchCountryDetails(selectedCountry.code);
+    }
+  }, [selectedCountry, user]);
+
+  const fetchCountryDetails = async (countryCode) => {
+    try {
+      setLoadingDetails(true);
+      const data = await enhancedCountryService.getBasicCountryData(countryCode);
+      setCountryDetails(data);
+    } catch (error) {
+      console.error('Error fetching country details:', error);
+      setCountryDetails(null);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   const features = [
     {
-      icon: Map,
+      icon: MapIcon,
       title: "Interactive Map",
       description: "Explore countries with our beautiful, interactive world map",
       color: "text-blue-500",
@@ -92,7 +116,7 @@ const Index = () => {
             </div>
             
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent leading-tight">
-              World Lens
+              Geosynth
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
@@ -143,20 +167,14 @@ const Index = () => {
         <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Interactive World Map
+              Interactive 3D Globe
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explore our beautiful, interactive world map. Click on any country to discover real-time data, news, weather, and cultural insights.
+              Explore our beautiful, interactive 3D globe. Click on any country to discover real-time data, news, weather, and cultural insights.
             </p>
           </div>
           
-          <Card className="p-8 shadow-2xl border-0 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm hover:shadow-3xl transition-all duration-500">
-            <div className="relative">
-              <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full animate-ping" />
-              <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full" />
-              <WorldMap onCountryClick={setSelectedCountry} />
-            </div>
-          </Card>
+          <Globe3D onCountrySelect={setSelectedCountry} className="animate-in fade-in duration-700" />
         </div>
       </section>
 
@@ -221,7 +239,7 @@ const Index = () => {
               </h3>
               
               <p className="text-lg text-muted-foreground mb-8">
-                Join thousands of users who trust World Lens for accurate, real-time country information.
+                Join thousands of users who trust Geosynth for accurate, real-time country information.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -272,49 +290,98 @@ const Index = () => {
           </DialogHeader>
           
           <div className="py-6">
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              <div className="text-center p-4 bg-primary/5 rounded-lg">
-                <Users className="w-8 h-8 text-primary mx-auto mb-2" />
-                <div className="text-sm text-muted-foreground">Population Data</div>
+            {user && countryDetails && !loadingDetails ? (
+              /* Signed-in user: Show basic country overview */
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-primary/10 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Capital</span>
+                    </div>
+                    <p className="font-semibold text-lg">{countryDetails.capital}</p>
+                  </div>
+                  <div className="p-4 bg-secondary/10 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-4 h-4 text-secondary" />
+                      <span className="text-sm text-muted-foreground">Population</span>
+                    </div>
+                    <p className="font-semibold text-lg">{enhancedCountryService.formatNumber(countryDetails.population)}</p>
+                  </div>
+                </div>
+                <div className="p-4 bg-accent/10 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Globe className="w-4 h-4 text-accent" />
+                    <span className="text-sm text-muted-foreground">Region</span>
+                  </div>
+                  <p className="font-semibold">{countryDetails.region} {countryDetails.subregion && `• ${countryDetails.subregion}`}</p>
+                </div>
+                {countryDetails.languages && countryDetails.languages.length > 0 && (
+                  <div className="p-4 bg-primary/10 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Languages className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Languages</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {countryDetails.languages.slice(0, 3).map((lang, idx) => (
+                        <Badge key={idx} variant="secondary">{lang}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="text-center p-4 bg-secondary/5 rounded-lg">
-                <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
-                <div className="text-sm text-muted-foreground">Economic Insights</div>
+            ) : user && loadingDetails ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Loading country details...</p>
               </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg mb-6">
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                What you'll discover:
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  Real-time weather & climate
+            ) : (
+              /* Not signed in: Show feature preview */
+              <>
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <div className="text-center p-4 bg-primary/5 rounded-lg">
+                    <Users className="w-8 h-8 text-primary mx-auto mb-2" />
+                    <div className="text-sm text-muted-foreground">Population Data</div>
+                  </div>
+                  <div className="text-center p-4 bg-secondary/5 rounded-lg">
+                    <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
+                    <div className="text-sm text-muted-foreground">Economic Insights</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-secondary" />
-                  Latest news & headlines
+                
+                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg mb-6">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    What you'll discover:
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      Real-time weather & climate
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-secondary" />
+                      Latest news & headlines
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-accent" />
+                      Currency exchange rates
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      Cultural information
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-secondary" />
+                      Demographics & statistics
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-accent" />
+                      Travel recommendations
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-accent" />
-                  Currency exchange rates
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  Cultural information
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-secondary" />
-                  Demographics & statistics
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-accent" />
-                  Travel recommendations
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
           
           <div className="flex gap-3">
@@ -325,13 +392,15 @@ const Index = () => {
               <Globe className="w-4 h-4 mr-2" />
               Explore {selectedCountry?.name}
             </Button>
-            <Button
-              variant="outline"
-              className="flex-1 border-primary/20 hover:bg-primary/5"
-              onClick={() => navigate("/auth")}
-            >
-              Sign In for More
-            </Button>
+            {!user && (
+              <Button
+                variant="outline"
+                className="flex-1 border-primary/20 hover:bg-primary/5"
+                onClick={() => navigate("/auth")}
+              >
+                Sign In for More
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

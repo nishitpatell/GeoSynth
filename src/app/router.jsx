@@ -13,6 +13,7 @@ import Auth from "@/pages/Auth";
 import CountryProfile from "@/pages/CountryProfile";
 import Wishlist from "@/pages/Wishlist";
 import Compare from "@/pages/Compare";
+import Profiles from "@/pages/Profiles";
 import NotFound from "@/pages/NotFound";
 
 export const AppRouter = () => {
@@ -37,6 +38,14 @@ export const AppRouter = () => {
         element={
           <ProtectedRoute>
             <Compare />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.PROFILE}
+        element={
+          <ProtectedRoute>
+            <Profiles />
           </ProtectedRoute>
         }
       />

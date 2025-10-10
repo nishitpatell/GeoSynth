@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Globe, Heart, BarChart3, LogOut, User, Sparkles, TrendingUp, Bell, Search } from "lucide-react";
+import { Globe, Heart, BarChart3, LogOut, User, Sparkles, TrendingUp, Bell, Search, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,6 +19,28 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark' || 
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -43,7 +66,7 @@ const Navbar = () => {
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                World Lens
+                Geosynth
               </span>
               <span className="text-xs text-muted-foreground font-medium">
                 Explore • Discover • Connect
@@ -95,6 +118,17 @@ const Navbar = () => {
                     </Link>
                   </Button>
                 </div>
+                
+                {/* Dark Mode Toggle */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleDarkMode}
+                  className="hover:bg-primary/5"
+                  title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
                 
                 {/* Notifications */}
                 <Button variant="ghost" size="sm" className="relative hover:bg-primary/5">
@@ -160,6 +194,13 @@ const Navbar = () => {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </div>
+                    
+                    <DropdownMenuItem asChild>
+                      <Link to="/profiles" className="flex items-center gap-2 w-full">
+                        <User className="h-4 w-4" />
+                        <span>My Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
                     
                     <DropdownMenuItem onClick={handleSignOut} className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950">
                       <LogOut className="mr-2 h-4 w-4" />

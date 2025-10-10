@@ -3,7 +3,7 @@
  */
 
 export const APP_CONFIG = {
-  name: 'GeoSynth',
+  name: 'Geosynth',
   version: '1.0.0',
   description: 'Explore comprehensive information about every country',
   

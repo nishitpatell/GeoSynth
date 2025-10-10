@@ -1,73 +1,170 @@
-# GeoSynth - Explore Countries of the World
+# Geosynth
 
-## Project info
+> A modern, interactive platform for exploring countries worldwide with real-time data, 3D globe visualization, and AI-powered insights.
 
-**URL**: https://lovable.dev/projects/7b11ed67-ff1c-4220-9b90-9a2026d85496
+[![React](https://img.shields.io/badge/React-18.3.1-blue.svg)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4.19-purple.svg)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-cyan.svg)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Enabled-green.svg)](https://supabase.com/)
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### Interactive 3D Globe
+- Rotating Earth with realistic textures
+- Click countries for detailed information
+- Smooth zoom and navigation controls
+- Auto-rotation and manual exploration
 
-**Use Lovable**
+### Comprehensive Country Data
+- Real-time economic indicators
+- Live weather information
+- Latest news and updates
+- Cultural insights and demographics
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7b11ed67-ff1c-4220-9b90-9a2026d85496) and start prompting.
+### Smart Features
+- **Wishlist**: Save favorite countries
+- **Comparison**: Compare multiple countries side-by-side
+- **Search**: Advanced search with autocomplete
+- **Dark Mode**: Beautiful light/dark themes
+- **Responsive**: Works on all devices
 
-Changes made via Lovable will be committed automatically to this repo.
+### Secure Authentication
+- Google OAuth integration
+- Email/password authentication
+- Protected routes and user profiles
+- Supabase backend
 
-**Use your preferred IDE**
+## Quick Start
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+- Node.js 16+ and npm
+- Supabase account (for authentication)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+```bash
+# Clone the repository
+git clone https://github.com/nishitpatell/GeoSynth.git
+cd GeoSynth
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your Supabase credentials
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Visit `http://localhost:8080` 
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Project Structure
 
-**Use GitHub Codespaces**
+````
+geosynth/
+├── src/
+│   ├── app/              # App configuration & routing
+│   ├── features/         # Feature modules (globe, auth, wishlist, etc.)
+│   ├── shared/           # Shared components & utilities
+│   ├── core/             # Core infrastructure (API, repositories)
+│   └── config/           # Configuration files
+├── public/
+│   └── assets/
+│       └── globe/        # 3D globe textures & data
+├── docs/                 # Documentation
+├── supabase/            # Database migrations
+└── ...config files
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Tech Stack
 
-## What technologies are used for this project?
+- **Frontend**: React 18, Vite, Tailwind CSS
+- **UI Components**: shadcn/ui, Radix UI
+- **3D Visualization**: react-globe.gl, Three.js
+- **State Management**: React Query, Context API
+- **Backend**: Supabase (Auth, Database)
+- **Routing**: React Router v6
+- **Styling**: Tailwind CSS with custom theme
 
-This project is built with:
+## Documentation
 
-- Vite
-- JavaScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [Architecture](./docs/ARCHITECTURE.md) - System design and patterns
+- [Authentication Setup](./docs/AUTH_SETUP.md) - Auth configuration
+- [Google OAuth Guide](./docs/GOOGLE_AUTH_SETUP.md) - OAuth setup
+- [Project Structure](./docs/PROJECT_STRUCTURE.md) - Detailed file structure
 
-## How can I deploy this project?
+## Theme
 
-Simply open [Lovable](https://lovable.dev/projects/7b11ed67-ff1c-4220-9b90-9a2026d85496) and click on Share -> Publish.
+Geosynth uses a custom color palette:
+- **Primary**: Green (#22c55e)
+- **Secondary**: Golden Yellow (#EAB308)
+- **Accent**: Amber (#F59E0B)
+- **Dark Mode**: Full support with persistent preference
 
-## Can I connect a custom domain to my Lovable project?
+## Available Scripts
 
-Yes, you can!
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Key Features Explained
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### 3D Globe
+Interactive globe built with react-globe.gl featuring:
+- Real Earth textures with topology
+- 195+ countries with accurate boundaries
+- Hover effects and click interactions
+- Smooth animations and transitions
+
+### Country Profiles
+Detailed information including:
+- Basic facts (capital, population, area)
+- Economic data (GDP, currency)
+- Weather information
+- Latest news articles
+- Cultural insights
+
+### Wishlist System
+- Save favorite countries
+- Persistent storage with Supabase
+- Quick access from any page
+- Add/remove with one click
+
+## Environment Variables
+
+Required variables in `.env`:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+See `.env.example` for template.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 👥 Authors
+
+- Nishit Patel - [@nishitpatell](https://github.com/nishitpatell)
+
+## 🙏 Acknowledgments
+
+- REST Countries API for country data
+- Natural Earth for GeoJSON data
+- Supabase for backend infrastructure
+- shadcn/ui for beautiful components
+
+---
+
+**Built with ❤️ using React and Vite**
