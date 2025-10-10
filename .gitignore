@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# OAuth credentials (NEVER COMMIT!)
+OAUTH_CREDENTIALS.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# GeoSynth - Explore Countries of the World
 
 ## Project info
 
@@ -55,7 +55,7 @@ npm run dev
 This project is built with:
 
 - Vite
-- TypeScript
+- JavaScript
 - React
 - shadcn-ui
 - Tailwind CSS
