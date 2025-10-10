@@ -1,75 +1,86 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { fetchCountryByName } from "../api/countryApi";
+import React from "react";
+import { useParams } from "react-router-dom";
+import useCountryProfile from "../hooks/useCountryProfile";
+import { Box, Typography, CircularProgress, Alert, Paper } from "@mui/material";
+import GeographySection from "../components/country/GeographySection";
+import EconomySection from "../components/country/EconomySection";
+import InfoItem from "../components/country/InfoItem";
 
 export default function CountryDetailsPage() {
   const { countryName } = useParams();
-  const navigate = useNavigate();
-  const [country, setCountry] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { profile, loading, error } = useCountryProfile(countryName);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetchCountryByName(countryName)
-      .then((data) => {
-        setCountry(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load country data");
-        setLoading(false);
-      });
-  }, [countryName]);
+  if (loading)
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
+  if (error)
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}
+      </Alert>
+    );
 
-  if (loading) return <p>Loading country information...</p>;
-  if (error) return <p>{error}</p>;
-  if (!country)
-    return <p>No data available for {decodeURIComponent(countryName)}</p>;
+  if (!profile)
+    return (
+      <Typography variant="h6" sx={{ m: 2 }}>
+        No country information available.
+      </Typography>
+    );
 
   return (
-    <div style={{ padding: 30 }}>
-      <button
-        onClick={() => navigate("/")}
-        style={{
-          marginBottom: 20,
-          padding: "8px 16px",
-          cursor: "pointer",
-          backgroundColor: "#1976d2",
-          color: "white",
-          border: "none",
-          borderRadius: 4,
-          fontSize: 16,
-        }}
-      >
-        &#8592; Back to Globe
-      </button>
+    <Paper sx={{ p: 4, maxWidth: 800, margin: "auto", mt: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        {profile.name.common}
+      </Typography>
 
-      <h2>{country.name.common}</h2>
-      <img
-        src={country.flags.svg}
-        alt={`${country.name.common} flag`}
-        width="150"
+      <Box
+        display="flex"
+        flexDirection="row"
+        alignItems="center"
+        gap={4}
+        mb={3}
+      >
+        <Box
+          component="img"
+          src={profile.flags.svg}
+          alt={profile.name.common}
+          sx={{ width: 200, borderRadius: 1, boxShadow: 3 }}
+        />
+        {profile.coatOfArms?.svg && (
+          <Box
+            component="img"
+            src={profile.coatOfArms.svg}
+            alt={`${profile.name.common} coat of arms`}
+            sx={{ width: 100, borderRadius: 1, boxShadow: 3 }}
+          />
+        )}
+      </Box>
+
+      <InfoItem label="Capital" value={profile.capital?.[0]} />
+      <InfoItem label="Region" value={profile.region} />
+      <InfoItem
+        label="Population"
+        value={profile.population.toLocaleString()}
       />
-      <p>
-        <strong>Capital:</strong> {country.capital?.[0] || "N/A"}
-      </p>
-      <p>
-        <strong>Region:</strong> {country.region}
-      </p>
-      <p>
-        <strong>Population:</strong> {country.population.toLocaleString()}
-      </p>
-      <p>
-        <strong>Area:</strong> {country.area.toLocaleString()} km²
-      </p>
-      <p>
-        <strong>Languages:</strong>{" "}
-        {country.languages
-          ? Object.values(country.languages).join(", ")
-          : "N/A"}
-      </p>
-    </div>
+      <InfoItem label="Area" value={`${profile.area.toLocaleString()} km²`} />
+      <InfoItem
+        label="Languages"
+        value={
+          profile.languages ? Object.values(profile.languages).join(", ") : null
+        }
+      />
+
+      <GeographySection
+        subregion={profile.subregion}
+        borders={profile.borders}
+      />
+
+      <EconomySection currencies={profile.currencies} />
+
+      {/* You can add more sections here like GovernmentSection, CultureSection, etc. */}
+    </Paper>
   );
 }
