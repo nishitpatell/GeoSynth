@@ -41,92 +41,90 @@ const CurrencyConverterPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="h-screen overflow-hidden bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
+      <div className="container mx-auto px-4 py-2 h-[calc(100vh-64px)] flex flex-col">
+        <div className="mb-4">
           <Button variant="ghost" onClick={() => navigate(-1)} className="hover:bg-primary/5">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
         </div>
 
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto flex-1 flex flex-col">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <Badge className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2">
+          <div className="text-center mb-2">
+            <div className="flex justify-center mb-1">
+              <Badge className="bg-primary text-primary-foreground px-4 py-2">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Real-time Exchange Rates
               </Badge>
             </div>
-            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-1 text-foreground">
               Currency Converter
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base text-muted-foreground max-w-3xl mx-auto">
               Convert between different currencies with real-time exchange rates from around the world
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          {/* About Exchange Rates at top */}
+          <Card className="mb-2 border-primary/20">
+            <CardHeader className="py-1.5">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Info className="h-4 w-4 text-primary" />
+                About Exchange Rates
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground grid md:grid-cols-3 gap-1">
+              <p>
+                <strong>Real-time Data:</strong> Exchange rates are updated regularly and sourced from reliable financial data providers.
+              </p>
+              <p>
+                <strong>Accuracy:</strong> Rates shown are indicative and may vary slightly from actual transaction rates at banks or exchange services.
+              </p>
+              <p>
+                <strong>Usage:</strong> Use this tool for quick conversions and reference. For official transactions, please consult your financial institution.
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 overflow-hidden">
             {/* Main Converter */}
-            <div className="lg:col-span-2">
-              <CurrencyConverter />
-              
-              {/* Info Card */}
-              <Card className="mt-6 border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Info className="h-5 w-5 text-primary" />
-                    About Exchange Rates
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-muted-foreground">
-                  <p>
-                    <strong>Real-time Data:</strong> Exchange rates are updated regularly and sourced from reliable financial data providers.
-                  </p>
-                  <p>
-                    <strong>Accuracy:</strong> Rates shown are indicative and may vary slightly from actual transaction rates at banks or exchange services.
-                  </p>
-                  <p>
-                    <strong>Usage:</strong> Use this tool for quick conversions and reference. For official transactions, please consult your financial institution.
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="lg:col-span-7 overflow-hidden">
+              <CurrencyConverter compact />
             </div>
 
             {/* Popular Pairs Sidebar */}
-            <div className="space-y-6">
-              <Card className="border-secondary/20">
+            <div className="space-y-4 lg:col-span-5 overflow-hidden">
+              <Card className="border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-secondary" />
+                    <DollarSign className="h-5 w-5 text-primary" />
                     Popular Pairs
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
+                <CardContent className="py-4">
+                  <div className="grid grid-cols-1 gap-2">
                     {popularPairs.map((pair, idx) => (
                       <Button
                         key={idx}
                         variant="outline"
-                        className="w-full justify-start hover:bg-secondary/10 hover:border-secondary transition-all"
-                        onClick={() => {
-                          // This would set the converter to these currencies
-                          toast.info(`Click the converter to set ${pair.label}`);
-                        }}
+                        className="w-full justify-between hover:bg-primary/10 transition-all"
+                        onClick={() => navigate(`/currency?from=${pair.from}&to=${pair.to}&amount=100`)}
                       >
                         <span className="font-mono">{pair.label}</span>
+                        <span className="text-xs text-muted-foreground">Set</span>
                       </Button>
                     ))}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-accent/10">
+              <Card className="border-border bg-muted">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <RefreshCw className="h-4 w-4 text-accent" />
+                    <RefreshCw className="h-4 w-4 text-primary" />
                     Live Updates
                   </CardTitle>
                 </CardHeader>
@@ -136,31 +134,10 @@ const CurrencyConverterPage = () => {
                   </p>
                 </CardContent>
               </Card>
-
-              <Card className="border-primary/20">
-                <CardContent className="pt-6">
-                  <div className="text-center space-y-3">
-                    <TrendingUp className="h-12 w-12 text-primary mx-auto" />
-                    <h3 className="font-semibold">Need More Features?</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Historical rates, charts, and advanced analytics coming soon!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
 
-          {/* Footer Note */}
-          <div className="mt-8 text-center">
-            <Card className="bg-muted/50 border-0">
-              <CardContent className="py-4">
-                <p className="text-sm text-muted-foreground">
-                  💡 <strong>Pro Tip:</strong> Bookmark this page for quick access to currency conversions while exploring countries!
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Footer Note hidden to ensure no page scroll */}
         </div>
       </div>
     </div>

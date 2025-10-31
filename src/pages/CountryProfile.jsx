@@ -117,12 +117,12 @@ const CountryProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="space-y-8">
             {/* Hero Skeleton */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-purple-600 p-8">
+            <div className="relative overflow-hidden rounded-3xl bg-muted p-8">
               <div className="flex items-center gap-6">
                 <Skeleton className="h-20 w-28 rounded-lg" />
                 <div className="space-y-3">
@@ -183,7 +183,7 @@ const CountryProfile = () => {
   const { basic, news, weather, exchange, wikipedia } = countryData;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         {/* Navigation */}
@@ -197,8 +197,8 @@ const CountryProfile = () => {
             onClick={toggleWishlist}
             className={`transition-all duration-300 ${
               isInWishlist 
-                ? "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg hover:shadow-xl hover:scale-105" 
-                : "hover:bg-pink-50 dark:hover:bg-pink-950 border-pink-200 dark:border-pink-800 hover:border-pink-300 dark:hover:border-pink-700"
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105" 
+                : "hover:bg-primary/5"
             }`}
           >
             <Heart className={`h-4 w-4 mr-2 transition-all duration-300 ${isInWishlist ? "fill-current scale-110" : ""}`} />
@@ -207,13 +207,9 @@ const CountryProfile = () => {
         </div>
 
         {/* Hero Section */}
-        <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-8 mb-8 shadow-2xl transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`relative overflow-hidden rounded-3xl bg-primary p-8 mb-8 shadow-2xl transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Animated Background Elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full animate-pulse" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full animate-bounce" />
-            <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-white/5 rounded-full animate-ping" />
-          </div>
+          <div className="absolute inset-0 overflow-hidden" />
           
           <div className="relative z-10">
             <div className="flex items-center gap-6 mb-6">
@@ -224,15 +220,15 @@ const CountryProfile = () => {
                     alt={`${basic.name} flag`} 
                     className="w-20 h-14 object-cover rounded-lg border-2 border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300" 
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg" />
+                  <div className="absolute inset-0 bg-black/20 rounded-lg" />
                 </div>
               )}
               <div className="text-white">
-                <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                <h1 className="text-5xl font-bold mb-2">
                   {basic.name}
                 </h1>
-                <p className="text-xl text-blue-100 mb-3">{basic.officialName}</p>
-                <div className="flex items-center gap-4 text-sm text-blue-100">
+                <p className="text-xl text-white/80 mb-3">{basic.officialName}</p>
+                <div className="flex items-center gap-4 text-sm text-white/80">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     <span>{basic.capital}</span>
@@ -257,13 +253,13 @@ const CountryProfile = () => {
                 </Badge>
               )}
               {basic.independent && (
-                <Badge className="bg-green-500/80 text-white border-green-400/50 hover:bg-green-500/90 transition-colors">
+                <Badge className="bg-primary/80 text-primary-foreground border-primary/50 hover:bg-primary/90 transition-colors">
                   <Crown className="h-3 w-3 mr-1" />
                   Independent
                 </Badge>
               )}
               {basic.unMember && (
-                <Badge className="bg-blue-500/80 text-white border-blue-400/50 hover:bg-blue-500/90 transition-colors">
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors">
                   <Landmark className="h-3 w-3 mr-1" />
                   UN Member
                 </Badge>
@@ -274,43 +270,43 @@ const CountryProfile = () => {
 
         <div className={`grid md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Demographics Card */}
-          <Card className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-900 hover:scale-105">
+          <Card className="group hover:shadow-2xl transition-all duration-500 border bg-card hover:scale-105">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 text-white group-hover:scale-110 transition-transform duration-300">
+                <div className="p-2 rounded-lg bg-primary text-primary-foreground group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-5 w-5" />
                 </div>
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-bold">
+                <span className="text-foreground font-bold">
                   Demographics
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                   <dt className="text-sm text-muted-foreground flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     Population
                   </dt>
-                  <dd className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  <dd className="text-lg font-bold text-primary">
                     {enhancedCountryService.formatNumber(basic.population)}
                   </dd>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                   <dt className="text-sm text-muted-foreground flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
                     Capital
                   </dt>
-                  <dd className="text-lg font-bold text-blue-600 dark:text-blue-400">{basic.capital}</dd>
+                  <dd className="text-lg font-bold text-foreground">{basic.capital}</dd>
                 </div>
-                <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors">
+                <div className="p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                   <dt className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
                     <Languages className="h-4 w-4" />
                     Languages
                   </dt>
                   <dd className="flex flex-wrap gap-1">
                     {basic.languages.map((lang, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      <Badge key={index} variant="secondary" className="text-xs">
                         {lang}
                       </Badge>
                     ))}
@@ -321,20 +317,20 @@ const CountryProfile = () => {
           </Card>
 
           {/* Economy Card */}
-          <Card className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900 hover:scale-105">
+          <Card className="group hover:shadow-2xl transition-all duration-500 border bg-card hover:scale-105">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 text-white group-hover:scale-110 transition-transform duration-300">
+                <div className="p-2 rounded-lg bg-primary text-primary-foreground group-hover:scale-110 transition-transform duration-300">
                   <DollarSign className="h-5 w-5" />
                 </div>
-                <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent font-bold">
+                <span className="text-foreground font-bold">
                   Economy & Currency
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="space-y-4">
-                <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors">
+                <div className="p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                   <dt className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
                     <DollarSign className="h-4 w-4" />
                     Currency
@@ -343,7 +339,7 @@ const CountryProfile = () => {
                     {basic.currencies.map((curr, index) => {
                       const details = basic.currencyDetails[curr];
                       return (
-                        <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                        <Badge key={index} variant="secondary" className="text-xs">
                           {details ? `${details.name} (${curr})` : curr}
                         </Badge>
                       );
@@ -351,12 +347,12 @@ const CountryProfile = () => {
                   </dd>
                 </div>
                 {exchange && !exchange.error && (
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                     <dt className="text-sm text-muted-foreground flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
                       Exchange Rate (USD)
                     </dt>
-                    <dd className="text-lg font-bold text-green-600 dark:text-green-400">
+                    <dd className="text-lg font-bold text-primary">
                       {exchange.rates?.USD ? `1 ${exchange.primaryCurrency} = ${exchange.rates.USD.toFixed(4)} USD` : 'N/A'}
                     </dd>
                   </div>
@@ -393,23 +389,23 @@ const CountryProfile = () => {
 
           {/* Weather Card */}
           {weather && !weather.error && weather.current && (
-            <Card className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-gradient-to-br from-sky-50 to-blue-100 dark:from-sky-950 dark:to-blue-900 hover:scale-105">
+            <Card className="group hover:shadow-2xl transition-all duration-500 border bg-card hover:scale-105">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 text-white group-hover:scale-110 transition-transform duration-300">
+                  <div className="p-2 rounded-lg bg-primary text-primary-foreground group-hover:scale-110 transition-transform duration-300">
                     <Cloud className="h-5 w-5" />
                   </div>
-                  <span className="bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent font-bold">
+                  <span className="text-foreground font-bold">
                     Weather in {basic.capital}
                   </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Thermometer className="h-5 w-5 text-sky-500" />
-                      <span className="text-3xl font-bold text-sky-600 dark:text-sky-400">
+                      <Thermometer className="h-5 w-5 text-primary" />
+                      <span className="text-3xl font-bold text-primary">
                         {weatherService.formatTemperature(weather.current.temperature)}
                       </span>
                     </div>
@@ -417,22 +413,22 @@ const CountryProfile = () => {
                       {weatherService.getWeatherDescription(weather.current.weatherCode, weather.current.isDay).icon}
                     </span>
                   </div>
-                  <p className="text-center text-sm text-muted-foreground p-2 rounded-lg bg-white/30 dark:bg-gray-800/30">
+                  <p className="text-center text-sm text-muted-foreground p-2 rounded-lg bg-muted">
                     {weatherService.getWeatherDescription(weather.current.weatherCode, weather.current.isDay).description}
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                      <Droplets className="h-4 w-4 text-blue-500" />
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+                      <Droplets className="h-4 w-4 text-primary" />
                       <div>
                         <p className="text-xs text-muted-foreground">Humidity</p>
-                        <p className="font-bold text-sky-600 dark:text-sky-400">{weather.current.humidity}%</p>
+                        <p className="font-bold text-primary">{weather.current.humidity}%</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
                       <Wind className="h-4 w-4 text-gray-500" />
                       <div>
                         <p className="text-xs text-muted-foreground">Wind</p>
-                        <p className="font-bold text-sky-600 dark:text-sky-400">{weather.current.windSpeed} km/h</p>
+                        <p className="font-bold text-primary">{weather.current.windSpeed} km/h</p>
                       </div>
                     </div>
                   </div>
@@ -446,7 +442,7 @@ const CountryProfile = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                   Currency Exchange
                 </CardTitle>
               </CardHeader>
@@ -475,7 +471,7 @@ const CountryProfile = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-purple-500" />
+                  <Globe className="h-5 w-5 text-primary" />
                   About {basic.name}
                 </CardTitle>
               </CardHeader>
@@ -502,13 +498,13 @@ const CountryProfile = () => {
         </div>
 
         {/* Latest News Section */}
-        <Card className={`mt-8 group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-gradient-to-br from-orange-50 to-red-100 dark:from-orange-950 dark:to-red-900 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <Card className={`mt-8 group hover:shadow-2xl transition-all duration-500 border bg-card ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white group-hover:scale-110 transition-transform duration-300">
+              <div className="p-2 rounded-lg bg-primary text-primary-foreground group-hover:scale-110 transition-transform duration-300">
                 <Newspaper className="h-6 w-6" />
               </div>
-              <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent font-bold text-xl">
+              <span className="text-foreground font-bold text-xl">
                 Latest News from {basic.name}
               </span>
             </CardTitle>
@@ -517,7 +513,7 @@ const CountryProfile = () => {
             {news && news.articles && news.articles.length > 0 ? (
               <div className="grid gap-4">
                 {news.articles.slice(0, 4).map((article, index) => (
-                  <div key={index} className="group/article p-4 rounded-xl bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 hover:shadow-lg">
+                  <div key={index} className="group/article p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all duration-300">
                     <div className="flex gap-4">
                       {article.urlToImage && (
                         <div className="relative overflow-hidden rounded-lg flex-shrink-0">
@@ -526,11 +522,11 @@ const CountryProfile = () => {
                             alt={article.title}
                             className="w-24 h-20 object-cover group-hover/article:scale-110 transition-transform duration-300"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                          <div className="absolute inset-0 bg-black/20" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base line-clamp-2 mb-2 group-hover/article:text-orange-600 dark:group-hover/article:text-orange-400 transition-colors">
+                        <h3 className="font-semibold text-base line-clamp-2 mb-2 group-hover/article:text-primary transition-colors">
                           <a 
                             href={article.url} 
                             target="_blank" 
@@ -544,7 +540,7 @@ const CountryProfile = () => {
                           {article.description}
                         </p>
                         <div className="flex items-center gap-3 text-xs">
-                          <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-800">
+                          <Badge variant="outline" className="border-border">
                             {article.source}
                           </Badge>
                           <div className="flex items-center gap-1 text-muted-foreground">
@@ -554,7 +550,7 @@ const CountryProfile = () => {
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover/article:text-orange-500 transition-colors" />
+                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover/article:text-primary transition-colors" />
                       </div>
                     </div>
                   </div>

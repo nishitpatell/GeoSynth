@@ -7,7 +7,7 @@ import { ZoomIn, ZoomOut, RotateCcw, Globe } from "lucide-react";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-const WorldMap = ({ onCountryClick }) => {
+const WorldMap = ({ onCountryClick, valuesMap = {}, min = 0, max = 0, metricLabel = 'Countries', getTooltip }) => {
   const navigate = useNavigate();
   const [tooltipContent, setTooltipContent] = useState("");
   const [zoom, setZoom] = useState(1);
@@ -64,19 +64,25 @@ const WorldMap = ({ onCountryClick }) => {
     return flagMap[countryCode] || '🌍';
   };
 
-  const getCountryColor = (geo) => {
-    if (hoveredCountry === geo.rsmKey) {
-      return "hsl(var(--primary))";
-    }
-    return "hsl(var(--secondary))";
+  const scaleColor = (val) => {
+    if (val == null || isNaN(val) || max === min) return 'hsl(var(--muted))';
+    const t = Math.max(0, Math.min(1, (val - min) / (max - min)));
+    const alpha = 0.2 + 0.6 * t; // 0.2-0.8 opacity
+    return `hsl(var(--primary) / ${alpha})`;
   };
 
-  const getCountryHoverColor = (geo) => {
-    return "hsl(var(--accent))";
+  const getCountryColor = (geo) => {
+    const code = geo.id;
+    const val = valuesMap[code];
+    return scaleColor(val);
+  };
+
+  const getCountryHoverColor = () => {
+    return "hsl(var(--primary) / 0.9)";
   };
 
   return (
-    <div className="w-full h-full min-h-[600px] relative bg-gradient-to-br from-background to-muted/20 rounded-2xl overflow-hidden">
+    <div className="w-full h-full min-h-[600px] relative bg-card rounded-2xl overflow-hidden border">
       {/* Map Controls */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <Button
@@ -109,24 +115,22 @@ const WorldMap = ({ onCountryClick }) => {
 
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 z-10">
-        <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50">
+        <div className="bg-background/95 rounded-lg p-3 shadow border">
           <div className="flex items-center gap-2 text-sm font-medium mb-2">
             <Globe className="w-4 h-4 text-primary" />
-            Interactive World Map
+            {metricLabel}
           </div>
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-secondary border" />
-              <span>Countries</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Low</span>
+            <div className="w-24 h-3 bg-muted rounded overflow-hidden">
+              <div className="h-3 w-full" style={{
+                background: 'linear-gradient(to right, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.8))'
+              }} />
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-accent border" />
-              <span>Hover to explore</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-primary border" />
-              <span>Click for details</span>
-            </div>
+            <span>High</span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {min?.toLocaleString?.() ?? min} — {max?.toLocaleString?.() ?? max}
           </div>
         </div>
       </div>
@@ -164,7 +168,11 @@ const WorldMap = ({ onCountryClick }) => {
                       }}
                       onClick={() => handleCountryClick(geo)}
                       data-tooltip-id="country-tooltip"
-                      data-tooltip-content={`${getCountryFlag(geo.id)} ${geo.properties.name}`}
+                      data-tooltip-content={
+                        getTooltip
+                          ? getTooltip(geo.id, geo.properties.name, valuesMap[geo.id])
+                          : `${getCountryFlag(geo.id)} ${geo.properties.name}${valuesMap[geo.id] != null ? ` • ${valuesMap[geo.id].toLocaleString()}` : ''}`
+                      }
                       style={{
                         default: {
                           fill: getCountryColor(geo),

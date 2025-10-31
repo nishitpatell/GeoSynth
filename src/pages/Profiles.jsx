@@ -57,7 +57,7 @@ const Profiles = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
@@ -65,12 +65,12 @@ const Profiles = () => {
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="h-20 w-20 ring-4 ring-primary/20">
               <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-              <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-white text-2xl font-bold">
+              <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
                 {getUserInitials()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold mb-2 text-foreground">
                 My Profile
               </h1>
               <p className="text-xl text-muted-foreground">
@@ -82,10 +82,10 @@ const Profiles = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Account Information Card */}
-          <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-muted/10">
+          <Card className="hover:shadow-xl transition-all duration-300 border bg-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-secondary text-white">
+                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
                   <User className="h-5 w-5" />
                 </div>
                 Account Information
@@ -101,17 +101,17 @@ const Profiles = () => {
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                <Calendar className="h-5 w-5 text-secondary mt-0.5" />
+                <Calendar className="h-5 w-5 text-foreground mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Member Since</p>
                   <p className="font-medium">{formatDate(user.created_at)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                <Sparkles className="h-5 w-5 text-accent mt-0.5" />
+                <Sparkles className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Account Status</p>
-                  <Badge className="mt-1 bg-gradient-to-r from-primary to-secondary text-white">
+                  <Badge className="mt-1 bg-primary text-primary-foreground">
                     Active Explorer
                   </Badge>
                 </div>
@@ -120,10 +120,10 @@ const Profiles = () => {
           </Card>
 
           {/* Activity Stats Card */}
-          <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-muted/10">
+          <Card className="hover:shadow-xl transition-all duration-300 border bg-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-accent to-secondary text-white">
+                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
                   <BarChart3 className="h-5 w-5" />
                 </div>
                 Activity Stats
@@ -135,7 +135,7 @@ const Profiles = () => {
                 <p className="text-center text-muted-foreground py-8">Loading stats...</p>
               ) : (
                 <>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                     <div className="flex items-center gap-3">
                       <Heart className="h-8 w-8 text-primary" />
                       <div>
@@ -144,21 +144,21 @@ const Profiles = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-secondary/10 to-secondary/5">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                     <div className="flex items-center gap-3">
-                      <Globe className="h-8 w-8 text-secondary" />
+                      <Globe className="h-8 w-8 text-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Countries Explored</p>
-                        <p className="text-2xl font-bold text-secondary">{wishlistCount}</p>
+                        <p className="text-2xl font-bold text-foreground">{wishlistCount}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-accent/10 to-accent/5">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                     <div className="flex items-center gap-3">
-                      <MapPin className="h-8 w-8 text-accent" />
+                      <MapPin className="h-8 w-8 text-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Comparisons Made</p>
-                        <p className="text-2xl font-bold text-accent">0</p>
+                        <p className="text-2xl font-bold text-foreground">0</p>
                       </div>
                     </div>
                   </div>
@@ -168,10 +168,10 @@ const Profiles = () => {
           </Card>
 
           {/* Preferences Card */}
-          <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-muted/10">
+          <Card className="hover:shadow-xl transition-all duration-300 border bg-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-secondary to-accent text-white">
+                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 Preferences
@@ -196,20 +196,20 @@ const Profiles = () => {
         </div>
 
         {/* Quick Actions */}
-        <Card className="mt-6 border-0 shadow-lg bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5">
+        <Card className="mt-6 border bg-card">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Manage your account and data</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              <Button variant="outline" className="hover:bg-primary/10 hover:border-primary">
+              <Button variant="outline" className="hover:bg-primary/10">
                 Edit Profile
               </Button>
-              <Button variant="outline" className="hover:bg-secondary/10 hover:border-secondary">
+              <Button variant="outline" className="hover:bg-primary/10">
                 Export Data
               </Button>
-              <Button variant="outline" className="hover:bg-accent/10 hover:border-accent">
+              <Button variant="outline" className="hover:bg-primary/10">
                 Privacy Settings
               </Button>
             </div>

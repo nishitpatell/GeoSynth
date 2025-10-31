@@ -37,7 +37,7 @@
 ## Quick Start
 
 ### Prerequisites
-- Node.js 16+ and npm
+- Node.js 18+ and npm
 - Supabase account (for authentication)
 
 ### Installation
@@ -92,7 +92,7 @@ geosynth/
 
 - [Architecture](./docs/ARCHITECTURE.md) - System design and patterns
 - [Authentication Setup](./docs/AUTH_SETUP.md) - Auth configuration
-- [Google OAuth Guide](./docs/GOOGLE_AUTH_SETUP.md) - OAuth setup
+- [Google OAuth Guide](./docs/GOOGLE_AUTH_SETUP_GUIDE.md) - OAuth setup
 - [Project Structure](./docs/PROJECT_STRUCTURE.md) - Detailed file structure
 
 ## Theme

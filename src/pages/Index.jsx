@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Globe3D } from "@/features/globe";
 import CountrySearch from "@/components/CountrySearch";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { enhancedCountryService } from "@/services/enhancedCountryService";
+import { demographicsService, INDICATORS } from "@/services/demographicsService";
+import { supabase } from "@/integrations/supabase/client";
+import { newsService } from "@/services/newsService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { aiInsightsService } from "@/services/aiInsightsService";
 
-const Index = () => {
+export default function Index() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [countryDetails, setCountryDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -19,18 +25,19 @@ const Index = () => {
   const [stats, setStats] = useState({ countries: 195, users: 1250, searches: 15420 });
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [globalNews, setGlobalNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [metricKey, setMetricKey] = useState('POPULATION');
+  const [heat, setHeat] = useState({ map: {}, min: 0, max: 0 });
+  const [topByMetric, setTopByMetric] = useState([]);
+  const [aiCountryBusy, setAiCountryBusy] = useState(false);
+  const [aiCountryText, setAiCountryText] = useState("");
+  const [aiNewsBusy, setAiNewsBusy] = useState(false);
+  const [aiNewsText, setAiNewsText] = useState("");
 
   useEffect(() => {
     setIsVisible(true);
-    // Animate stats
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        countries: 195,
-        users: prev.users + Math.floor(Math.random() * 3),
-        searches: prev.searches + Math.floor(Math.random() * 10)
-      }));
-    }, 3000);
-    return () => clearInterval(interval);
+    return () => {};
   }, []);
 
   useEffect(() => {
@@ -38,6 +45,34 @@ const Index = () => {
       fetchCountryDetails(selectedCountry.code);
     }
   }, [selectedCountry, user]);
+
+  // Load heatmap and top countries for selected metric
+  useEffect(() => {
+    (async () => {
+      const indicatorKey = INDICATORS[metricKey] || INDICATORS.POPULATION;
+      const h = await demographicsService.getAllByIndicatorYear(indicatorKey);
+      setHeat(h || { map: {}, min: 0, max: 0 });
+      const top = await demographicsService.getTopCountriesByIndicator(indicatorKey, 5);
+      setTopByMetric(top.items || []);
+    })();
+  }, [metricKey]);
+
+  // Load Global News for logged-in users
+  useEffect(() => {
+    const loadNews = async () => {
+      if (!user) return;
+      try {
+        setNewsLoading(true);
+        const res = await newsService.searchNews('world', '', 6);
+        setGlobalNews(res.articles || []);
+      } catch (_) {
+        setGlobalNews([]);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+    loadNews();
+  }, [user]);
 
   const fetchCountryDetails = async (countryCode) => {
     try {
@@ -57,132 +92,191 @@ const Index = () => {
       icon: MapIcon,
       title: "Interactive Map",
       description: "Explore countries with our beautiful, interactive world map",
-      color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-950",
+      color: "text-primary",
+      bgColor: "bg-muted",
       delay: "0ms"
     },
     {
       icon: Globe,
       title: "Real-time Data",
       description: "Access live news, weather, and economic data for every country",
-      color: "text-green-500",
-      bgColor: "bg-green-50 dark:bg-green-950",
+      color: "text-primary",
+      bgColor: "bg-muted",
       delay: "100ms"
     },
     {
       icon: Heart,
       title: "Smart Wishlists",
       description: "AI-powered recommendations and personalized country collections",
-      color: "text-pink-500",
-      bgColor: "bg-pink-50 dark:bg-pink-950",
+      color: "text-primary",
+      bgColor: "bg-muted",
       delay: "200ms"
     },
     {
       icon: BarChart3,
       title: "Advanced Analytics",
       description: "Deep insights with interactive charts and trend analysis",
-      color: "text-purple-500",
-      bgColor: "bg-purple-50 dark:bg-purple-950",
+      color: "text-primary",
+      bgColor: "bg-muted",
       delay: "300ms"
     },
   ];
 
   const quickActions = [
-    { icon: TrendingUp, label: "Currency Converter", path: "/currency", color: "bg-gradient-to-r from-yellow-400 to-orange-500" },
-    { icon: Newspaper, label: "Global News", path: "/news", color: "bg-gradient-to-r from-blue-400 to-purple-500" },
-    { icon: Users, label: "Demographics", path: "/demographics", color: "bg-gradient-to-r from-green-400 to-teal-500" },
+    { icon: TrendingUp, label: "Currency Converter", path: "/currency", color: "bg-primary text-primary-foreground" },
+    { icon: Newspaper, label: "Global News", path: "/news", color: "bg-foreground text-background" },
+    { icon: Users, label: "Demographics", path: "/demographics", color: "bg-muted text-foreground" },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
-        </div>
-        
-        <div className="container mx-auto px-4 py-20 relative">
-          <div className={`text-center max-w-4xl mx-auto mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className="flex justify-center mb-6">
-              <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Powered by Real-time APIs
-              </Badge>
-            </div>
-            
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent leading-tight">
-              Geosynth
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
-              Discover comprehensive information about every country with 
-              <span className="text-primary font-semibold"> real-time data</span>, 
-              <span className="text-secondary font-semibold"> interactive maps</span>, and 
-              <span className="text-accent font-semibold"> AI-powered insights</span>
-            </p>
-            
-            {/* Stats Section */}
-            <div className="grid grid-cols-3 gap-8 mb-12 max-w-2xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stats.countries}</div>
-                <div className="text-sm text-muted-foreground">Countries</div>
+      {/* Logged-in Home: Globe-first experience */}
+      {user && (
+        <section className="relative bg-background">
+          {/* Primary Globe Section */}
+          <div className="container mx-auto px-4 pt-6 pb-6">
+            <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className="rounded-2xl border bg-card p-2 relative">
+                {/* Metric selector dropdown on the card */}
+                <div className="absolute top-3 right-3 z-10">
+                  <Select value={metricKey} onValueChange={setMetricKey}>
+                    <SelectTrigger className="h-9 w-[200px] text-xs md:text-sm bg-background/90 backdrop-blur">
+                      <SelectValue placeholder="Select metric" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {Object.keys(INDICATORS).map((key) => (
+                        <SelectItem key={key} value={key} className="text-xs md:text-sm">
+                          {key.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="h-[70vh] w-full">
+                  <Globe3D
+                    onCountrySelect={setSelectedCountry}
+                    className="h-full w-full"
+                    valuesMap={heat.map}
+                    min={heat.min}
+                    max={heat.max}
+                    metricLabel={metricKey.replace(/_/g,' ')}
+                  />
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-secondary mb-2">{stats.users.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-accent mb-2">{stats.searches.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Searches Today</div>
-              </div>
-            </div>
-            
-            <CountrySearch />
-            
-            {/* Quick Actions */}
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className={`${action.color} text-white border-0 hover:scale-105 transition-all duration-200 shadow-lg`}
-                  onClick={() => navigate(action.path)}
-                >
-                  <action.icon className="w-4 h-4 mr-2" />
-                  {action.label}
-                </Button>
-              ))}
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Map Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Interactive 3D Globe
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explore our beautiful, interactive 3D globe. Click on any country to discover real-time data, news, weather, and cultural insights.
-            </p>
+          {/* Top by metric */}
+          <div className="container mx-auto px-4 pb-8">
+            <div className="rounded-xl border bg-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold">Top by {metricKey.replace(/_/g,' ')}</h3>
+              </div>
+              <div className="space-y-2">
+                {topByMetric.map((i) => (
+                  <div key={i.code} className="flex items-center gap-3">
+                    <div className="w-40 truncate text-sm">{i.name}</div>
+                    <div className="flex-1 h-2 bg-muted rounded">
+                      <div className="h-2 rounded bg-primary" style={{ width: `${heat.max ? (i.value/heat.max)*100 : 0}%` }} />
+                    </div>
+                    <div className="w-28 text-right text-xs text-muted-foreground">{i.value?.toLocaleString?.() ?? i.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          
-          <Globe3D onCountrySelect={setSelectedCountry} className="animate-in fade-in duration-700" />
-        </div>
-      </section>
+
+          {/* Global News Section */}
+          <div className="container mx-auto px-4 pb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Global News</h2>
+              <Button variant="outline" size="sm" onClick={() => navigate('/news')}>View all</Button>
+            </div>
+            {newsLoading ? (
+              <div className="text-muted-foreground">Loading latest headlines…</div>
+            ) : globalNews.length === 0 ? (
+              <div className="text-muted-foreground">No headlines available right now.</div>
+            ) : (
+              <>
+                <div className="flex items-center justify-end mb-2">
+                  <button
+                    disabled={aiNewsBusy}
+                    className={`text-xs underline ${aiNewsBusy ? 'text-muted-foreground' : 'text-primary'}`}
+                    onClick={async ()=>{
+                      try{
+                        setAiNewsBusy(true);
+                        const titles = globalNews.map(n=>n.title).filter(Boolean);
+                        const payload = await aiInsightsService.summarizeHeadlines({ titles });
+                        setAiNewsText(payload);
+                      }catch(e){
+                        setAiNewsText('AI summary unavailable.');
+                      }finally{
+                        setAiNewsBusy(false);
+                      }
+                    }}
+                  >
+                    {aiNewsBusy ? 'Summarizing…' : 'Summarize headlines'}
+                  </button>
+                </div>
+                {aiNewsText && (
+                  <div className="mb-3 p-3 border rounded bg-muted/20 text-[13px] space-y-2">
+                    <div className="whitespace-pre-wrap">{typeof aiNewsText === 'string' ? aiNewsText : (aiNewsText.summary || '')}</div>
+                    {Array.isArray(aiNewsText.bullets) && aiNewsText.bullets.length > 0 && (
+                      <ul className="list-disc pl-5 space-y-1">
+                        {aiNewsText.bullets.map((b,i)=> (<li key={i}>{b}</li>))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {globalNews.map((a, i) => (
+                    <Card key={i} className="border bg-card overflow-hidden hover:bg-muted/50 transition-colors">
+                      {a.urlToImage && (
+                        <img src={a.urlToImage} alt={a.title} className="w-full h-36 object-cover" loading="lazy" />
+                      )}
+                      <div className="p-4">
+                        <a href={a.url} target="_blank" rel="noreferrer" className="font-semibold hover:underline line-clamp-2">
+                          {a.title}
+                        </a>
+                        <div className="mt-2 text-xs text-muted-foreground flex items-center justify-between">
+                          <span>{a.source}</span>
+                          <span>{new Date(a.publishedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Guest-only content */}
+      {!user && (
+      <>
+        <section className="container mx-auto px-4 py-16">
+          <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                Interactive 3D Globe
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Explore our beautiful, interactive 3D globe. Click on any country to discover real-time data, news, weather, and cultural insights.
+              </p>
+            </div>
+            
+            <Globe3D onCountrySelect={setSelectedCountry} className="animate-in fade-in duration-700" />
+          </div>
+        </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-20 bg-gradient-to-b from-background to-muted/10">
+      <section className="container mx-auto px-4 py-20">
         <div className={`transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
               Powerful Features
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
@@ -194,11 +288,11 @@ const Index = () => {
             {features.map((feature, index) => (
               <Card 
                 key={index} 
-                className={`group p-8 hover:shadow-2xl transition-all duration-500 cursor-pointer border-0 ${feature.bgColor} hover:scale-105 hover:-translate-y-2`}
+                className={`group p-8 transition-all duration-500 cursor-pointer border bg-card hover:bg-muted hover:scale-105 hover:-translate-y-2`}
                 style={{animationDelay: feature.delay}}
               >
                 <div className="relative">
-                  <div className={`w-16 h-16 ${feature.color} mb-6 p-4 rounded-2xl bg-white dark:bg-gray-800 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:rotate-6`}>
+                  <div className={`w-16 h-16 ${feature.color} mb-6 p-4 rounded-2xl bg-background border border-border transition-all duration-300`}>
                     <feature.icon className="w-full h-full" />
                   </div>
                   
@@ -222,49 +316,51 @@ const Index = () => {
       </section>
       
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className={`text-center transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <Card className="p-12 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border-primary/20 shadow-2xl">
-            <div className="max-w-3xl mx-auto">
-              <div className="flex justify-center mb-6">
-                <div className="flex space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
-                  ))}
+        <section className="container mx-auto px-4 py-20">
+          <div className={`text-center transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <Card className="p-12 bg-muted border border-border">
+              <div className="max-w-3xl mx-auto">
+                <div className="flex justify-center mb-6">
+                  <div className="flex space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-6 h-6 text-primary" />
+                    ))}
+                  </div>
+                </div>
+                
+                <h3 className="text-3xl md:text-4xl font-bold mb-6">
+                  Ready to Explore the World?
+                </h3>
+                
+                <p className="text-lg text-muted-foreground mb-8">
+                  Join thousands of users who trust Geosynth for accurate, real-time country information.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button 
+                    size="lg" 
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-105"
+                    onClick={() => navigate('/auth')}
+                  >
+                    Get Started Free
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="hover:bg-primary/5 hover:scale-105 transition-all duration-300"
+                    onClick={() => navigate('/about')}
+                  >
+                    Learn More
+                  </Button>
                 </div>
               </div>
-              
-              <h3 className="text-3xl md:text-4xl font-bold mb-6">
-                Ready to Explore the World?
-              </h3>
-              
-              <p className="text-lg text-muted-foreground mb-8">
-                Join thousands of users who trust Geosynth for accurate, real-time country information.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  onClick={() => navigate('/auth')}
-                >
-                  Get Started Free
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-primary/20 hover:bg-primary/5 hover:scale-105 transition-all duration-300"
-                  onClick={() => navigate('/about')}
-                >
-                  Learn More
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </section>
+            </Card>
+          </div>
+        </section>
+        </>
+      )}
 
       {/* Enhanced Country Preview Dialog */}
       <Dialog open={!!selectedCountry} onOpenChange={() => setSelectedCountry(null)}>
@@ -279,7 +375,7 @@ const Index = () => {
                 />
               )}
               <div>
-                <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <DialogTitle className="text-3xl font-bold text-foreground">
                   {selectedCountry?.name}
                 </DialogTitle>
                 <DialogDescription className="text-lg">
@@ -342,13 +438,13 @@ const Index = () => {
                     <Users className="w-8 h-8 text-primary mx-auto mb-2" />
                     <div className="text-sm text-muted-foreground">Population Data</div>
                   </div>
-                  <div className="text-center p-4 bg-secondary/5 rounded-lg">
-                    <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <TrendingUp className="w-8 h-8 text-primary mx-auto mb-2" />
                     <div className="text-sm text-muted-foreground">Economic Insights</div>
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg mb-6">
+                <div className="bg-muted p-6 rounded-lg mb-6">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
                     What you'll discover:
@@ -359,11 +455,11 @@ const Index = () => {
                       Real-time weather & climate
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-secondary" />
+                      <div className="w-2 h-2 rounded-full bg-foreground" />
                       Latest news & headlines
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-accent" />
+                      <div className="w-2 h-2 rounded-full bg-foreground" />
                       Currency exchange rates
                     </div>
                     <div className="flex items-center gap-2">
@@ -371,11 +467,11 @@ const Index = () => {
                       Cultural information
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-secondary" />
+                      <div className="w-2 h-2 rounded-full bg-foreground" />
                       Demographics & statistics
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-accent" />
+                      <div className="w-2 h-2 rounded-full bg-foreground" />
                       Travel recommendations
                     </div>
                   </div>
@@ -383,29 +479,100 @@ const Index = () => {
               </>
             )}
           </div>
-          
+
           <div className="flex gap-3">
             <Button
-              className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300"
               onClick={() => navigate(`/country/${selectedCountry?.code}`)}
             >
-              <Globe className="w-4 h-4 mr-2" />
               Explore {selectedCountry?.name}
             </Button>
             {!user && (
               <Button
                 variant="outline"
-                className="flex-1 border-primary/20 hover:bg-primary/5"
+                className="flex-1 hover:bg-primary/5"
                 onClick={() => navigate("/auth")}
               >
                 Sign In for More
               </Button>
             )}
           </div>
+
+          {/* AI Country Insight */}
+          {user && countryDetails && (
+            <div className="mt-3">
+              <button
+                disabled={aiCountryBusy}
+                className={`text-xs underline ${aiCountryBusy ? 'text-muted-foreground' : 'text-primary'}`}
+                onClick={async ()=>{
+                  try{
+                    setAiCountryBusy(true);
+                    const payload = await aiInsightsService.summarizeCountry({
+                      name: selectedCountry?.name,
+                      region: countryDetails.region,
+                      capital: countryDetails.capital,
+                      population: countryDetails.population,
+                      area: countryDetails.area,
+                      indicators: {}
+                    });
+                    setAiCountryText(payload);
+                  }catch(e){
+                    setAiCountryText('AI insight unavailable.');
+                  }finally{
+                    setAiCountryBusy(false);
+                  }
+                }}
+              >
+                {aiCountryBusy ? 'Generating AI insight…' : 'Generate AI insight'}
+              </button>
+              {aiCountryText && (
+                <div className="mt-2 p-3 border rounded bg-muted/20 text-[13px] space-y-2">
+                  <div className="whitespace-pre-wrap">{typeof aiCountryText === 'string' ? aiCountryText : (aiCountryText.summary || '')}</div>
+                  {Array.isArray(aiCountryText.bullets) && aiCountryText.bullets.length > 0 && (
+                    <ul className="list-disc pl-5 space-y-1">
+                      {aiCountryText.bullets.map((b,i)=> (<li key={i}>{b}</li>))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick actions when signed in */}
+          {user && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={() => navigate(`/compare?add=${selectedCountry?.code}`)}>
+                <BarChart3 className="w-4 h-4 mr-2" /> Compare
+              </Button>
+              <Button variant="outline" onClick={async () => {
+                if (!selectedCountry) return;
+                try {
+                  await supabase.from('wishlists').insert({
+                    user_id: user.id,
+                    country_code: selectedCountry.code,
+                    country_name: selectedCountry.name,
+                    added_at: new Date().toISOString(),
+                  });
+                } catch (_) {}
+              }}>
+                <Heart className="w-4 h-4 mr-2" /> Add to Wishlist
+              </Button>
+              <Button variant="outline" onClick={() => navigate(`/profiles?country=${selectedCountry?.code}`)}>
+                <Users className="w-4 h-4 mr-2" /> Profile
+              </Button>
+              <Button variant="outline" onClick={() => navigate(`/news?country=${selectedCountry?.name}`)}>
+                <Newspaper className="w-4 h-4 mr-2" /> News
+              </Button>
+              <Button variant="outline" asChild>
+                <a href={`https://www.google.com/search?q=${encodeURIComponent(selectedCountry?.name + ' travel advisory')}`} target="_blank" rel="noreferrer">
+                  Travel Advisory
+                </a>
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   );
-};
-
-export default Index;
+}

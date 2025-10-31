@@ -94,8 +94,8 @@ const Compare = () => {
 
   const getComparisonIcon = (val1, val2) => {
     if (!val1 || !val2) return <Minus className="h-4 w-4 text-muted-foreground" />;
-    if (val1 > val2) return <TrendingUp className="h-4 w-4 text-green-500" />;
-    if (val1 < val2) return <TrendingDown className="h-4 w-4 text-red-500" />;
+    if (val1 > val2) return <TrendingUp className="h-4 w-4 text-primary" />;
+    if (val1 < val2) return <TrendingDown className="h-4 w-4 text-foreground" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
@@ -156,8 +156,8 @@ const Compare = () => {
                   )}
                 </div>
                 {country2 ? (
-                  <div className="p-4 rounded-lg border-2 border-secondary/50 bg-secondary/5">
-                    <Badge className="mb-2 bg-secondary text-white">Selected</Badge>
+                  <div className="p-4 rounded-lg border-2 border-foreground/50 bg-muted">
+                    <Badge className="mb-2 bg-foreground text-background">Selected</Badge>
                     <p className="text-lg font-semibold">{country2.name}</p>
                     <p className="text-sm text-muted-foreground">{country2.code}</p>
                   </div>
@@ -175,7 +175,7 @@ const Compare = () => {
             </div>
             
             <Button 
-              className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300"
               onClick={handleCompare}
               disabled={!country1 || !country2}
             >
@@ -201,7 +201,7 @@ const Compare = () => {
             )}
             
             {country1 && country2 && !comparing && (
-              <div className="mt-8 p-8 text-center border-2 border-dashed rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
+              <div className="mt-8 p-8 text-center border-2 border-dashed rounded-lg bg-muted/20">
                 <BarChart3 className="h-16 w-16 text-primary mx-auto mb-4" />
                 <p className="text-xl font-semibold mb-2">
                   Ready to compare {country1.name} and {country2.name}
@@ -256,7 +256,7 @@ const Compare = () => {
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground mb-1">Population</p>
-                      <p className="text-lg font-bold text-secondary">{formatNumber(country2Data.population)}</p>
+                      <p className="text-lg font-bold text-foreground">{formatNumber(country2Data.population)}</p>
                       <p className="text-xs text-muted-foreground mt-1">{country2.name}</p>
                     </div>
                   </div>
@@ -273,7 +273,7 @@ const Compare = () => {
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground mb-1">Area</p>
-                      <p className="text-lg font-bold text-secondary">{formatArea(country2Data.area)}</p>
+                      <p className="text-lg font-bold text-foreground">{formatArea(country2Data.area)}</p>
                       <p className="text-xs text-muted-foreground mt-1">{country2.name}</p>
                     </div>
                   </div>
@@ -295,7 +295,7 @@ const Compare = () => {
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground mb-1">Density</p>
-                      <p className="text-lg font-bold text-secondary">
+                      <p className="text-lg font-bold text-foreground">
                         {country2Data.area ? Math.round(country2Data.population / country2Data.area) : 'N/A'} /km²
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">{country2.name}</p>
@@ -306,10 +306,10 @@ const Compare = () => {
             </Card>
 
             {/* Geography Comparison */}
-            <Card className="border-2 border-secondary/20">
+            <Card className="border-2 border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-secondary" />
+                  <Globe className="h-5 w-5 text-primary" />
                   Geography & Location
                 </CardTitle>
               </CardHeader>
@@ -340,7 +340,7 @@ const Compare = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    <h3 className="font-semibold text-secondary">{country2.name}</h3>
+                    <h3 className="font-semibold text-foreground">{country2.name}</h3>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between p-2 rounded bg-muted/50">
                         <span className="text-sm text-muted-foreground">Capital</span>
@@ -367,10 +367,10 @@ const Compare = () => {
             </Card>
 
             {/* Languages & Culture */}
-            <Card className="border-2 border-accent/20">
+            <Card className="border-2 border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-accent" />
+                  <MapPin className="h-5 w-5 text-primary" />
                   Languages & Culture
                 </CardTitle>
               </CardHeader>

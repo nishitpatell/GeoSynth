@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { RotateCcw, ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
 import { useGlobeData } from '../hooks/useGlobeData';
 import { useGlobeInteraction } from '../hooks/useGlobeInteraction';
+import { enhancedCountryService } from '@/services/enhancedCountryService';
 
 const GLOBE_IMAGES = {
   texture: '/assets/globe/earth-day.jpg',
@@ -19,14 +20,14 @@ const GLOBE_IMAGES = {
 };
 
 const GLOBE_THEME = {
-  polygonDefault: '#22c55e26', // Green with transparency (hex with alpha)
-  polygonHover: '#EAB308', // Golden yellow
-  polygonActive: '#F59E0B', // Amber
-  stroke: '#0000004D', // Dark borders (hex with alpha)
+  polygonDefault: '#22c55e26', // Primary green with transparency
+  polygonHover: '#16a34a', // Deeper primary green
+  polygonActive: '#166534', // Forest green
+  stroke: '#0000004D',
   background: 'rgba(0,0,0,0)',
 };
 
-export const Globe3D = ({ onCountrySelect, className = '' }) => {
+export const Globe3D = ({ onCountrySelect, className = '', valuesMap = null, min = 0, max = 0, metricLabel = null }) => {
   const globeRef = useRef();
   const navigate = useNavigate();
   const { countries, loading, error } = useGlobeData();
@@ -40,6 +41,9 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
   } = useGlobeInteraction(globeRef);
 
   const [isInitialized, setIsInitialized] = useState(false);
+  const [hoverInfo, setHoverInfo] = useState(null);
+  const [hoverLoading, setHoverLoading] = useState(false);
+  const hoverCache = useRef(new Map());
 
   // Initialize globe settings
   useEffect(() => {
@@ -63,6 +67,51 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
       initializeGlobe();
     }
   }, [loading, countries, isInitialized]);
+
+  // Fetch basic details for hovered country (debounced + cached)
+  useEffect(() => {
+    let timer;
+    const fetchHover = async () => {
+      if (!hoveredCountry?.properties) {
+        setHoverInfo(null);
+        return;
+      }
+      const code = hoveredCountry.properties.ISO_A3 || hoveredCountry.properties.iso_a3 || hoveredCountry.id;
+      if (!code) {
+        setHoverInfo(null);
+        return;
+      }
+      if (hoverCache.current.has(code)) {
+        setHoverInfo(hoverCache.current.get(code));
+        return;
+      }
+      try {
+        setHoverLoading(true);
+        const basic = await enhancedCountryService.getBasicCountryData(code);
+        const info = {
+          code,
+          name: basic.name,
+          capital: basic.capital,
+          area: basic.area,
+          population: basic.population,
+        };
+        hoverCache.current.set(code, info);
+        setHoverInfo(info);
+      } catch (e) {
+        setHoverInfo(null);
+      } finally {
+        setHoverLoading(false);
+      }
+    };
+
+    // small debounce to avoid spamming requests while moving
+    if (hoveredCountry) {
+      timer = setTimeout(fetchHover, 250);
+    } else {
+      setHoverInfo(null);
+    }
+    return () => timer && clearTimeout(timer);
+  }, [hoveredCountry]);
 
   // Handle country click
   const onPolygonClick = (country) => {
@@ -97,8 +146,18 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[600px] bg-gradient-to-br from-background to-muted/20 rounded-2xl">
+    const getScaledColor = (country) => {
+    if (!valuesMap || !country) return null;
+    const code = country.properties?.ISO_A3 || country.properties?.iso_a3 || country.id;
+    const val = valuesMap[code];
+    if (val == null || isNaN(val) || max === min) return GLOBE_THEME.polygonDefault;
+    const t = Math.max(0, Math.min(1, (val - min) / (max - min)));
+    const alpha = 0.2 + 0.6 * t;
+    return `#22c55e${Math.round(alpha * 255).toString(16).padStart(2, '0')}`; // green with alpha
+  };
+
+  return (
+      <div className="flex items-center justify-center h-[600px] bg-muted rounded-2xl">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading globe...</p>
@@ -109,7 +168,7 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[600px] bg-gradient-to-br from-background to-muted/20 rounded-2xl">
+      <div className="flex items-center justify-center h-[600px] bg-muted rounded-2xl">
         <div className="text-center">
           <p className="text-destructive mb-4">Failed to load globe: {error}</p>
           <Button onClick={() => window.location.reload()}>Retry</Button>
@@ -120,7 +179,7 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
 
   return (
     <div className={`relative ${className}`}>
-      <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-background to-muted/10">
+      <Card className="overflow-hidden border shadow-2xl bg-card">
         {/* Globe Container */}
         <div className="relative w-full h-[600px] flex items-center justify-center">
           <Globe
@@ -130,9 +189,11 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
             backgroundColor={GLOBE_THEME.background}
             polygonsData={countries}
             polygonAltitude={(d) => (d === hoveredCountry ? 0.04 : 0.005)}
-            polygonCapColor={(d) =>
-              d === hoveredCountry ? GLOBE_THEME.polygonHover : GLOBE_THEME.polygonDefault
-            }
+            polygonCapColor={(d) => {
+              if (d === hoveredCountry) return GLOBE_THEME.polygonHover;
+              const scaled = getScaledColor(d);
+              return scaled || GLOBE_THEME.polygonDefault;
+            }}
             polygonStrokeColor={() => GLOBE_THEME.stroke}
             polygonSideColor={() => '#22c55e08'}
             onPolygonHover={handleCountryHover}
@@ -142,12 +203,22 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
             height={600}
           />
 
-          {/* Hover Tooltip */}
+          {/* Hover Info */}
           {hoveredCountry && (
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-none z-10">
-              <Badge className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 text-base font-semibold shadow-lg">
-                {hoveredCountry.properties?.name || 'Unknown'}
-              </Badge>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+              <div className="bg-background/95 border border-border rounded-xl shadow-2xl px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                <div className="text-sm font-semibold mb-1">
+                  {hoverInfo?.name || hoveredCountry.properties?.name || 'Loading...'}
+                </div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                  <div>Capital</div>
+                  <div className="text-right">{hoverInfo?.capital ?? (hoverLoading ? '…' : 'N/A')}</div>
+                  <div>Population</div>
+                  <div className="text-right">{hoverInfo?.population ? hoverInfo.population.toLocaleString() : (hoverLoading ? '…' : 'N/A')}</div>
+                  <div>Area</div>
+                  <div className="text-right">{hoverInfo?.area ? `${hoverInfo.area.toLocaleString()} km²` : (hoverLoading ? '…' : 'N/A')}</div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -188,16 +259,17 @@ export const Globe3D = ({ onCountrySelect, className = '' }) => {
               <div className="text-xs space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-primary/20 border border-primary" />
-                  <span className="text-muted-foreground">Countries</span>
+                  <span className="text-muted-foreground">{metricLabel || 'Countries'}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-secondary border border-secondary" />
-                  <span className="text-muted-foreground">Hover to highlight</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-accent border border-accent" />
-                  <span className="text-muted-foreground">Click for details</span>
-                </div>
+                {valuesMap && (
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span>Low</span>
+                    <div className="w-20 h-2 bg-muted rounded overflow-hidden">
+                      <div className="h-2 w-full" style={{ background: 'linear-gradient(to right, rgba(34,197,94,0.2), rgba(34,197,94,0.8))' }} />
+                    </div>
+                    <span>High</span>
+                  </div>
+                )}
               </div>
             </Card>
           </div>

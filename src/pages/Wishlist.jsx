@@ -131,7 +131,7 @@ const Wishlist = () => {
           </div>
           <Button 
             onClick={() => setAddDialogOpen(true)}
-            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Country
@@ -195,7 +195,7 @@ const Wishlist = () => {
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent className="max-w-3xl p-0 gap-0">
           <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <DialogTitle className="text-2xl font-bold text-foreground">
               Add Country to Wishlist
             </DialogTitle>
           </DialogHeader>

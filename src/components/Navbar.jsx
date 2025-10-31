@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Globe, Heart, BarChart3, LogOut, User, Sparkles, TrendingUp, Bell, Search, Moon, Sun, X } from "lucide-react";
+import { Globe, Heart, BarChart3, LogOut, User, Users, Sparkles, TrendingUp, Bell, Search, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -115,7 +115,7 @@ const Navbar = () => {
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
               <Globe className="h-8 w-8 text-primary transition-all duration-300 group-hover:rotate-12 group-hover:scale-110" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full" />
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-bold text-black dark:text-white tracking-tight">
@@ -182,12 +182,24 @@ const Navbar = () => {
                       <span className="hidden lg:inline">Compare</span>
                     </Link>
                   </Button>
+
+                  <Button 
+                    variant={isActive('/demographics') ? 'default' : 'ghost'} 
+                    size="sm" 
+                    asChild
+                    className={`transition-all duration-200 border ${isActive('/demographics') ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'}`}
+                  >
+                    <Link to="/demographics" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span className="hidden lg:inline">Demographics</span>
+                    </Link>
+                  </Button>
                   
                   <Button 
                     variant={isActive('/currency') ? 'default' : 'ghost'} 
                     size="sm" 
                     asChild
-                    className={`transition-all duration-200 ${isActive('/currency') ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg' : 'hover:bg-yellow-50 dark:hover:bg-yellow-950'}`}
+                    className={`transition-all duration-200 ${isActive('/currency') ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/5'}`}
                   >
                     <Link to="/currency" className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
@@ -210,7 +222,7 @@ const Navbar = () => {
                 {/* Notifications */}
                 <Button variant="ghost" size="sm" className="relative hover:bg-primary/5">
                   <Bell className="h-4 w-4" />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
                 </Button>
                 {/* User Menu */}
                 <DropdownMenu>
@@ -218,11 +230,11 @@ const Navbar = () => {
                     <Button variant="ghost" size="sm" className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-                        <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-white font-semibold">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                           {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
@@ -230,7 +242,7 @@ const Navbar = () => {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-                          <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-white font-semibold text-lg">
+                          <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-lg">
                             {getUserInitials()}
                           </AvatarFallback>
                         </Avatar>
@@ -263,6 +275,12 @@ const Navbar = () => {
                         <Link to="/compare" className="flex items-center gap-2 w-full">
                           <BarChart3 className="h-4 w-4" />
                           <span>Compare</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/demographics" className="flex items-center gap-2 w-full">
+                          <Users className="h-4 w-4" />
+                          <span>Demographics</span>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
@@ -299,7 +317,7 @@ const Navbar = () => {
                 <Button 
                   size="sm" 
                   asChild 
-                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-105"
                 >
                   <Link to="/auth?mode=signup" className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
@@ -313,14 +331,14 @@ const Navbar = () => {
       </div>
       
       {/* Progress Bar for Page Loading */}
-      <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 transition-opacity duration-300" />
+      <div className="h-0.5 bg-primary opacity-0 transition-opacity duration-300" />
     </nav>
 
     {/* Search Dialog */}
     <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
       <DialogContent className="max-w-3xl p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold text-foreground">
             Search Countries
           </DialogTitle>
         </DialogHeader>
