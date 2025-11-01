@@ -17,20 +17,39 @@ async function tryLangChainCall(prompt, model = DEFAULT_MODEL) {
 async function callGeminiRest(prompt, model = DEFAULT_MODEL) {
   const key = getApiKey();
   if (!key) throw new Error('Missing VITE_GEMINI_API_KEY');
+
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.4, topP: 0.9, maxOutputTokens: 512 },
+    generationConfig: {
+      temperature: 0.4,
+      topP: 0.9,
+      maxOutputTokens: 512,
+    },
   };
+
   const url = `${GEMINI_ENDPOINT(model)}?key=${encodeURIComponent(key)}`;
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  if (!res.ok) throw new Error(`Gemini error ${res.status}`);
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gemini error ${res.status}`);
+  }
+
   const data = await res.json();
   console.log("AKSHHHHH", prompt);
-  console.log('🤖 Gemini Raw Response:', data);
-  const text = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join('\n') || '';
-  console.log('📝 Gemini Parsed Text:', text);
+  console.log("🤖 Gemini Raw Response:", data);
+
+  const text =
+    data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("\n") || "";
+
+  console.log("📝 Gemini Parsed Text:", text);
   return text;
 }
+
 
 // Lightweight client-side validation of AI JSON
 function validateInsightJson(obj) {
