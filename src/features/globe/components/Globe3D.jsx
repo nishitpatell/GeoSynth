@@ -145,8 +145,8 @@ export const Globe3D = ({ onCountrySelect, className = '', valuesMap = null, min
     globeRef.current.pointOfView({ ...pov, altitude: Math.min(pov.altitude * 1.3, 4) }, 300);
   };
 
-  if (loading) {
-    const getScaledColor = (country) => {
+  // Get scaled color based on metric value
+  const getScaledColor = (country) => {
     if (!valuesMap || !country) return null;
     const code = country.properties?.ISO_A3 || country.properties?.iso_a3 || country.id;
     const val = valuesMap[code];
@@ -156,7 +156,8 @@ export const Globe3D = ({ onCountrySelect, className = '', valuesMap = null, min
     return `#22c55e${Math.round(alpha * 255).toString(16).padStart(2, '0')}`; // green with alpha
   };
 
-  return (
+  if (loading) {
+    return (
       <div className="flex items-center justify-center h-[600px] bg-muted rounded-2xl">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />

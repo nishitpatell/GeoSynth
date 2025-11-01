@@ -308,6 +308,16 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                {/* Dark Mode Toggle for guests */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleDarkMode}
+                  className="hover:bg-primary/5"
+                  title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
                 <Button variant="ghost" size="sm" asChild className="hover:bg-primary/5">
                   <Link to="/auth" className="flex items-center gap-2">
                     <User className="h-4 w-4" />

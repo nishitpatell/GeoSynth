@@ -1,6 +1,7 @@
 /* AI Insights Service
- - Tries to use LangChain's GoogleGenerativeAI if available
- - Falls back to direct Gemini REST call otherwise
+- Tries to use LangChain's GoogleGenerativeAI if available
+- Falls back to direct Gemini REST call otherwise
+- Removed LangChain import and usage due to unresolved dependency error
 */
 
 const DEFAULT_MODEL = (typeof import.meta !== 'undefined' && import.meta.env.VITE_GEMINI_MODEL) || 'gemini-2.5-flash';
@@ -9,19 +10,8 @@ const GEMINI_ENDPOINT = (model)=>`https://generativelanguage.googleapis.com/v1be
 const getApiKey = () => (typeof import.meta !== 'undefined' ? import.meta.env.VITE_GEMINI_API_KEY : undefined);
 
 async function tryLangChainCall(prompt, model = DEFAULT_MODEL) {
-  try {
-    const { ChatGoogleGenerativeAI } = await import('@langchain/google-genai');
-    const llm = new ChatGoogleGenerativeAI({
-      apiKey: getApiKey(),
-      modelName: model,
-      temperature: 0.4,
-    });
-    const res = await llm.call(prompt);
-    const text = typeof res?.content === 'string' ? res.content : (Array.isArray(res?.content) ? res.content.map(p=>p.text||'').join('') : String(res||''));
-    return text;
-  } catch (e) {
-    return null;
-  }
+  // Removed LangChain usage due to unresolved dependency
+  return null;
 }
 
 async function callGeminiRest(prompt, model = DEFAULT_MODEL) {

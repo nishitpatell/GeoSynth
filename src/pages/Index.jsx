@@ -131,6 +131,34 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      {/* Hero heading + search, visible to everyone */}
+      <section className="container mx-auto px-4 pt-8 pb-6">
+        <div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="relative">
+              <Globe className="h-16 w-16 text-primary" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full" />
+            </div>
+            <div className="flex flex-col items-start">
+              <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
+                GEOSYNTH
+              </h1>
+              <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+                Travel Intelligence
+              </span>
+            </div>
+          </div>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+            Explore countries, compare data, and get smart insights.
+          </p>
+        </div>
+        <div className="max-w-2xl mx-auto mb-4">
+          <CountrySearch 
+            onSelect={(c)=> navigate(`/country/${c.code}`)}
+            hideQuickActions={true}
+          />
+        </div>
+      </section>
       
       {/* Logged-in Home: Globe-first experience */}
       {user && (
