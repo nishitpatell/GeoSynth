@@ -16,13 +16,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { newsService } from "@/services/newsService";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { aiInsightsService } from "@/services/aiInsightsService";
+import { statsService } from "@/services/statsService";
 
 export default function Index() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [countryDetails, setCountryDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [stats, setStats] = useState({ countries: 195, users: 1250, searches: 15420 });
+  const [stats, setStats] = useState({ countries: 195, activeUsers: 0, totalWishlists: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
   const [globalNews, setGlobalNews] = useState([]);
@@ -38,6 +40,22 @@ export default function Index() {
   useEffect(() => {
     setIsVisible(true);
     return () => {};
+  }, []);
+
+  // Load live statistics
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setStatsLoading(true);
+        const liveStats = await statsService.getAllStats();
+        setStats(liveStats);
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    loadStats();
   }, []);
 
   useEffect(() => {
@@ -131,34 +149,89 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      {/* Hero heading + search, visible to everyone */}
-      <section className="container mx-auto px-4 pt-8 pb-6">
-        <div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="relative">
-              <Globe className="h-16 w-16 text-primary" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full" />
+      {/* Hero heading + search for logged-in users */}
+      {user && (
+        <section className="container mx-auto px-4 pt-8 pb-6">
+          <div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="relative">
+                <Globe className="h-16 w-16 text-primary" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full" />
+              </div>
+              <div className="flex flex-col items-start">
+                <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
+                  GEOSYNTH
+                </h1>
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+                  Travel Intelligence
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col items-start">
-              <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
-                GEOSYNTH
-              </h1>
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
-                Travel Intelligence
-              </span>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Explore countries, compare data, and get smart insights.
+            </p>
+          </div>
+          <div className="max-w-2xl mx-auto mb-4">
+            <CountrySearch 
+              onSelect={(c)=> navigate(`/country/${c.code}`)}
+              hideQuickActions={true}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Hero heading + search + stats for guests */}
+      {!user && (
+        <section className="container mx-auto px-4 pt-8 pb-6">
+          <div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="relative">
+                <Globe className="h-16 w-16 text-primary" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full" />
+              </div>
+              <div className="flex flex-col items-start">
+                <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
+                  GEOSYNTH
+                </h1>
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+                  Travel Intelligence
+                </span>
+              </div>
+            </div>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              Discover comprehensive information about every country with <span className="text-foreground font-medium">real-time data</span>, <span className="text-primary font-medium">interactive maps</span>, and <span className="text-foreground font-medium">AI-powered insights</span>
+            </p>
+            
+            {/* Statistics Section - Only for guests */}
+            <div className="flex items-center justify-center gap-8 md:gap-16 mb-6">
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+                  {statsLoading ? '...' : stats.countries}
+                </div>
+                <div className="text-sm text-muted-foreground">Countries</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
+                  {statsLoading ? '...' : stats.activeUsers}
+                </div>
+                <div className="text-sm text-muted-foreground">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+                  {statsLoading ? '...' : stats.totalWishlists}
+                </div>
+                <div className="text-sm text-muted-foreground">Total Wishlists</div>
+              </div>
             </div>
           </div>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore countries, compare data, and get smart insights.
-          </p>
-        </div>
-        <div className="max-w-2xl mx-auto mb-4">
-          <CountrySearch 
-            onSelect={(c)=> navigate(`/country/${c.code}`)}
-            hideQuickActions={true}
-          />
-        </div>
-      </section>
+          <div className="max-w-2xl mx-auto mb-4">
+            <CountrySearch 
+              onSelect={(c)=> navigate(`/country/${c.code}`)}
+              hideQuickActions={true}
+            />
+          </div>
+        </section>
+      )}
       
       {/* Logged-in Home: Globe-first experience */}
       {user && (
@@ -166,9 +239,9 @@ export default function Index() {
           {/* Primary Globe Section */}
           <div className="container mx-auto px-4 pt-6 pb-6">
             <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="rounded-2xl border bg-card p-2 relative">
+              <div className="relative z-10">
                 {/* Metric selector dropdown on the card */}
-                <div className="absolute top-3 right-3 z-10">
+                <div className="absolute top-3 right-3 z-20">
                   <Select value={metricKey} onValueChange={setMetricKey}>
                     <SelectTrigger className="h-9 w-[200px] text-xs md:text-sm bg-background/90 backdrop-blur">
                       <SelectValue placeholder="Select metric" />
@@ -197,7 +270,7 @@ export default function Index() {
           </div>
 
           {/* Top by metric */}
-          <div className="container mx-auto px-4 pb-8">
+          <div className="container mx-auto px-4 pb-8 relative z-0">
             <div className="rounded-xl border bg-card p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold">Top by {metricKey.replace(/_/g,' ')}</h3>
