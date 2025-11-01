@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, X, ArrowRight, Users, DollarSign, MapPin, Globe, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { BarChart3, X, ArrowRight, Users, DollarSign, MapPin, Globe, TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-react";
 import CountrySearch from "@/components/CountrySearch";
 import { toast } from "sonner";
 import { enhancedCountryService } from "@/services/enhancedCountryService";
+import { aiInsightsService } from "@/services/aiInsightsService";
 
 const Compare = () => {
   const { user } = useAuth();
@@ -18,6 +19,8 @@ const Compare = () => {
   const [country2Data, setCountry2Data] = useState(null);
   const [loading, setLoading] = useState(false);
   const [comparing, setComparing] = useState(false);
+  const [aiInsight, setAiInsight] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const handleCountry1Select = (country) => {
     if (country2 && country.code === country2.code) {
@@ -58,6 +61,7 @@ const Compare = () => {
       
       setCountry1Data(data1);
       setCountry2Data(data2);
+      setAiInsight(null);
       toast.success("Comparison loaded successfully!");
     } catch (error) {
       console.error("Error loading comparison data:", error);
@@ -97,6 +101,36 @@ const Compare = () => {
     if (val1 > val2) return <TrendingUp className="h-4 w-4 text-primary" />;
     if (val1 < val2) return <TrendingDown className="h-4 w-4 text-foreground" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const generateAIInsight = async () => {
+    if (!country1Data || !country2Data) return;
+    
+    try {
+      setAiLoading(true);
+      const insight = await aiInsightsService.compareCountries({
+        countries: [
+          {
+            name: country1.name,
+            population: country1Data.population,
+            area: country1Data.area,
+            gdp: country1Data.gdp
+          },
+          {
+            name: country2.name,
+            population: country2Data.population,
+            area: country2Data.area,
+            gdp: country2Data.gdp
+          }
+        ]
+      });
+      setAiInsight(insight);
+    } catch (error) {
+      console.error('Error generating AI insight:', error);
+      toast.error('Failed to generate AI insight');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   return (
@@ -412,6 +446,77 @@ const Compare = () => {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Insights */}
+            <Card className="border-2 border-primary/30 bg-card">
+              <CardHeader className="bg-primary/5">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    AI Comparison Insights
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={generateAIInsight}
+                    disabled={aiLoading}
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    {aiLoading ? 'Generating...' : aiInsight ? 'Regenerate' : 'Generate Insights'}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {!aiInsight && !aiLoading && (
+                  <div className="text-center py-8">
+                    <Sparkles className="h-12 w-12 text-primary mx-auto mb-3 opacity-50" />
+                    <p className="text-foreground font-medium">Click "Generate Insights" to get AI-powered comparison analysis</p>
+                  </div>
+                )}
+                {aiLoading && (
+                  <div className="text-center py-8">
+                    <div className="animate-pulse space-y-3">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-5/6 mx-auto" />
+                      <Skeleton className="h-4 w-4/6 mx-auto" />
+                    </div>
+                  </div>
+                )}
+                {aiInsight && !aiLoading && (
+                  <div className="space-y-4">
+                    <div className="prose prose-sm max-w-none">
+                      <p className="text-foreground leading-relaxed">{aiInsight.summary}</p>
+                    </div>
+                    {aiInsight.bullets && aiInsight.bullets.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-foreground">Key Points:</p>
+                        <ul className="space-y-2">
+                          {aiInsight.bullets.map((bullet, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-primary mt-1">•</span>
+                              <span className="text-sm text-foreground">{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {aiInsight.keyDifferences && aiInsight.keyDifferences.length > 0 && (
+                      <div className="space-y-2 mt-4 p-3 rounded-lg bg-background/50">
+                        <p className="text-sm font-semibold text-foreground">Notable Differences:</p>
+                        <ul className="space-y-2">
+                          {aiInsight.keyDifferences.map((diff, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-primary mt-1">→</span>
+                              <span className="text-sm text-muted-foreground">{diff}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

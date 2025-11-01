@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, ArrowLeft, Users, DollarSign, Building2, Map, Newspaper, Cloud, TrendingUp, Globe, Calendar, ExternalLink, Star, MapPin, Languages, Crown, Landmark, Thermometer, Wind, Droplets } from "lucide-react";
+import { Heart, ArrowLeft, Users, DollarSign, Building2, Map, Newspaper, Cloud, TrendingUp, Globe, Calendar, ExternalLink, Star, MapPin, Languages, Crown, Landmark, Thermometer, Wind, Droplets, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { enhancedCountryService } from "@/services/enhancedCountryService";
 import { weatherService } from "@/services/weatherService";
 import { exchangeRateService } from "@/services/exchangeRateService";
+import { aiInsightsService } from "@/services/aiInsightsService";
 
 const CountryProfile = () => {
   const { code } = useParams();
@@ -21,6 +22,8 @@ const CountryProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [aiInsight, setAiInsight] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -78,6 +81,30 @@ const CountryProfile = () => {
       .maybeSingle();
 
     setIsInWishlist(!!data);
+  };
+
+  const generateAIInsight = async () => {
+    if (!countryData?.basic) return;
+    
+    try {
+      setAiLoading(true);
+      const basic = countryData.basic;
+      const insight = await aiInsightsService.summarizeCountryProfile({
+        name: basic.name,
+        region: basic.region,
+        capital: basic.capital,
+        population: basic.population,
+        gdp: basic.gdp,
+        languages: basic.languages || [],
+        currencies: basic.currencies || [],
+      });
+      setAiInsight(insight);
+    } catch (error) {
+      console.error('Error generating AI insight:', error);
+      toast.error('Failed to generate AI insight');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const toggleWishlist = async () => {
@@ -267,6 +294,77 @@ const CountryProfile = () => {
             </div>
           </div>
         </div>
+
+        {/* AI Insights Section */}
+        <Card className={`mb-8 border-2 border-primary/30 bg-card transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <CardHeader className="bg-primary/5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                AI Country Insights
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generateAIInsight}
+                disabled={aiLoading}
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                {aiLoading ? 'Generating...' : aiInsight ? 'Regenerate' : 'Generate Insights'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {!aiInsight && !aiLoading && (
+              <div className="text-center py-8">
+                <Sparkles className="h-12 w-12 text-primary mx-auto mb-3 opacity-50" />
+                <p className="text-foreground font-medium">Click "Generate Insights" to get AI-powered country analysis</p>
+              </div>
+            )}
+            {aiLoading && (
+              <div className="text-center py-8">
+                <div className="animate-pulse space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6 mx-auto" />
+                  <Skeleton className="h-4 w-4/6 mx-auto" />
+                </div>
+              </div>
+            )}
+            {aiInsight && !aiLoading && (
+              <div className="space-y-4">
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-foreground leading-relaxed">{aiInsight.summary}</p>
+                </div>
+                {aiInsight.bullets && aiInsight.bullets.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-foreground">Key Facts:</p>
+                    <ul className="space-y-2">
+                      {aiInsight.bullets.map((bullet, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span className="text-sm text-foreground">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {aiInsight.travelTips && aiInsight.travelTips.length > 0 && (
+                  <div className="space-y-2 mt-4 p-3 rounded-lg bg-background/50">
+                    <p className="text-sm font-semibold text-foreground">Travel Tips:</p>
+                    <ul className="space-y-2">
+                      {aiInsight.travelTips.map((tip, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-primary mt-1">→</span>
+                          <span className="text-sm text-muted-foreground">{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className={`grid md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Demographics Card */}

@@ -25,7 +25,9 @@ async function callGeminiRest(prompt, model = DEFAULT_MODEL) {
   const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`Gemini error ${res.status}`);
   const data = await res.json();
+  console.log('🤖 Gemini Raw Response:', data);
   const text = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join('\n') || '';
+  console.log('📝 Gemini Parsed Text:', text);
   return text;
 }
 
@@ -67,7 +69,9 @@ export const aiInsightsService = {
       parsed = { summary: typeof raw === 'string' ? raw : JSON.stringify(raw), bullets: [] };
     }
     const server = await pydanticValidate(parsed, 'CorrelationInsight');
-    return server.ok ? server.data : parsed;
+    const result = server.ok ? server.data : parsed;
+    console.log('✅ Correlation Summary Result:', result);
+    return result;
   },
 
   async summarizeCountry({ name, region, capital, population, area, indicators = {} }) {
@@ -79,7 +83,9 @@ export const aiInsightsService = {
     const local = validateInsightJson(parsed);
     if (!local.ok) parsed = { summary: typeof raw === 'string' ? raw : JSON.stringify(raw), bullets: [] };
     const server = await pydanticValidate(parsed, 'CountryInsight');
-    return server.ok ? server.data : parsed;
+    const result = server.ok ? server.data : parsed;
+    console.log('✅ Country Summary Result:', result);
+    return result;
   },
 
   async summarizeHeadlines({ titles = [] }) {
@@ -91,7 +97,72 @@ export const aiInsightsService = {
     const local = validateInsightJson({ ...parsed, caveats: parsed.caveats ?? undefined });
     if (!local.ok) parsed = { summary: typeof raw === 'string' ? raw : JSON.stringify(raw), bullets: [] };
     const server = await pydanticValidate(parsed, 'HeadlineInsight');
-    return server.ok ? server.data : parsed;
+    const result = server.ok ? server.data : parsed;
+    console.log('✅ Headlines Summary Result:', result);
+    return result;
+  },
+
+  async compareCountries({ countries = [] }) {
+    const countriesText = countries.map(c => 
+      `${c.name}: Population ${c.population?.toLocaleString() || 'N/A'}, GDP ${c.gdp || 'N/A'}, Area ${c.area?.toLocaleString() || 'N/A'} km²`
+    ).join('\n');
+    const prompt = `Return STRICT JSON only. Schema: { summary: string, bullets: string[], keyDifferences: string[] }\n\nCompare these countries for travelers and researchers:\n${countriesText}\n\nProvide: 1) Brief comparison summary (80-100 words), 2) 3-4 key bullet points, 3) 2-3 notable differences. Be objective and factual.`;
+    const viaLC = await tryLangChainCall(prompt, DEFAULT_MODEL);
+    const raw = viaLC || await callGeminiRest(prompt, DEFAULT_MODEL);
+    let parsed;
+    try { 
+      parsed = JSON.parse(raw); 
+      if (!parsed.keyDifferences) parsed.keyDifferences = [];
+    } catch { 
+      parsed = { summary: raw, bullets: [], keyDifferences: [] }; 
+    }
+    console.log('✅ Compare Countries Result:', parsed);
+    return parsed;
+  },
+
+  async analyzeWishlist({ countries = [] }) {
+    const countriesText = countries.map(c => c.name || c.country_name).join(', ');
+    const prompt = `Return STRICT JSON only. Schema: { summary: string, bullets: string[], recommendations: string[] }\n\nAnalyze this travel wishlist:\n${countriesText}\n\nProvide: 1) Brief analysis (60-80 words), 2) 2-3 insights about the selection, 3) 2 similar destination recommendations. Keep it helpful and concise.`;
+    const viaLC = await tryLangChainCall(prompt, DEFAULT_MODEL);
+    const raw = viaLC || await callGeminiRest(prompt, DEFAULT_MODEL);
+    let parsed;
+    try { 
+      parsed = JSON.parse(raw);
+      if (!parsed.recommendations) parsed.recommendations = [];
+    } catch { 
+      parsed = { summary: raw, bullets: [], recommendations: [] }; 
+    }
+    console.log('✅ Wishlist Analysis Result:', parsed);
+    return parsed;
+  },
+
+  async analyzeDemographicTrend({ indicator, topCountries = [], bottomCountries = [] }) {
+    const topText = topCountries.slice(0, 5).map(c => `${c.name}: ${c.value?.toLocaleString() || c.value}`).join(', ');
+    const bottomText = bottomCountries.slice(0, 5).map(c => `${c.name}: ${c.value?.toLocaleString() || c.value}`).join(', ');
+    const prompt = `Return STRICT JSON only. Schema: { summary: string, bullets: string[] }\n\nAnalyze this demographic indicator: ${indicator}\n\nTop countries: ${topText}\nBottom countries: ${bottomText}\n\nProvide: 1) Brief analysis (80-100 words), 2) 3-4 key insights. Be objective and data-driven.`;
+    const viaLC = await tryLangChainCall(prompt, DEFAULT_MODEL);
+    const raw = viaLC || await callGeminiRest(prompt, DEFAULT_MODEL);
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch { parsed = { summary: raw, bullets: [] }; }
+    const local = validateInsightJson({ ...parsed, caveats: parsed.caveats ?? undefined });
+    if (!local.ok) parsed = { summary: typeof raw === 'string' ? raw : JSON.stringify(raw), bullets: [] };
+    console.log('✅ Demographic Trend Result:', parsed);
+    return parsed;
+  },
+
+  async summarizeCountryProfile({ name, region, capital, population, gdp, languages = [], currencies = [], climate, culture }) {
+    const prompt = `Return STRICT JSON only. Schema: { summary: string, bullets: string[], travelTips: string[] }\n\nCountry: ${name}\nRegion: ${region}\nCapital: ${capital}\nPopulation: ${population?.toLocaleString() || 'N/A'}\nGDP: ${gdp || 'N/A'}\nLanguages: ${languages.join(', ') || 'N/A'}\nCurrencies: ${currencies.join(', ') || 'N/A'}\n\nProvide: 1) Comprehensive overview (100-120 words), 2) 4-5 key facts, 3) 2-3 practical travel tips. Be informative and helpful.`;
+    const viaLC = await tryLangChainCall(prompt, DEFAULT_MODEL);
+    const raw = viaLC || await callGeminiRest(prompt, DEFAULT_MODEL);
+    let parsed;
+    try { 
+      parsed = JSON.parse(raw);
+      if (!parsed.travelTips) parsed.travelTips = [];
+    } catch { 
+      parsed = { summary: raw, bullets: [], travelTips: [] }; 
+    }
+    console.log('✅ Country Profile Result:', parsed);
+    return parsed;
   }
 };
 
