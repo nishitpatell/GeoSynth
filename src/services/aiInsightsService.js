@@ -25,6 +25,7 @@ async function callGeminiRest(prompt, model = DEFAULT_MODEL) {
   const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`Gemini error ${res.status}`);
   const data = await res.json();
+  console.log("AKSHHHHH", prompt);
   console.log('🤖 Gemini Raw Response:', data);
   const text = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join('\n') || '';
   console.log('📝 Gemini Parsed Text:', text);
